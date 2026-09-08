@@ -27,7 +27,13 @@ const generation = (patch: Partial<GenerationData> = {}): GenerationData => ({
   ...patch,
 });
 
-const setup = (options: { saveGraph?: SaveMock; startGeneration?: StartMock } = {}) => {
+type Options = {
+  saveGraph?: SaveMock;
+  startGeneration?: StartMock;
+  limits?: { maxNodes: number; maxEdges: number };
+};
+
+const setup = (options: Options = {}) => {
   const saveGraph: SaveMock =
     options.saveGraph ?? vi.fn((input) => Promise.resolve({ graph: input.graph, etag: '"v2"' }));
   const startGeneration: StartMock =
@@ -43,7 +49,12 @@ const setup = (options: { saveGraph?: SaveMock; startGeneration?: StartMock } = 
     useSession({
       spaceId: 'space-1',
       snapshot: { graph: empty, etag: '"v1"' },
-      config: { debounceMs: 500, pollIntervalMs: 500 },
+      config: {
+        debounceMs: 500,
+        pollIntervalMs: 500,
+        maxNodes: options.limits?.maxNodes ?? 20,
+        maxEdges: options.limits?.maxEdges ?? 20,
+      },
       history: [],
       api: { saveGraph, getGraph, startGeneration, getGeneration },
     }),
@@ -169,5 +180,18 @@ describe('useSession', () => {
     expect(view.result.current.nodes).toHaveLength(0);
     expect(view.result.current.viewport.zoom).toBe(2);
     expect(view.result.current.save.status).toBe('saved');
+  });
+
+  it('не добавляет ноды сверх лимита и объясняет причину', () => {
+    const { view } = setup({ limits: { maxNodes: 2, maxEdges: 2 } });
+
+    act(() => {
+      view.result.current.addNode('prompt');
+      view.result.current.addNode('generator');
+      view.result.current.addNode('result');
+    });
+
+    expect(view.result.current.nodes).toHaveLength(2);
+    expect(view.result.current.notice).toContain('2');
   });
 });

@@ -15,7 +15,7 @@ type Input = {
   api: SessionApi;
   spaceId: string;
   snapshot: GraphSnapshot;
-  config: Pick<ApiConfig, 'debounceMs' | 'pollIntervalMs'>;
+  config: Pick<ApiConfig, 'debounceMs' | 'pollIntervalMs' | 'maxNodes' | 'maxEdges'>;
   history: readonly GenerationData[];
 };
 
@@ -46,7 +46,8 @@ export const useSession = ({ api, spaceId, snapshot, config, history }: Input) =
     return { sync: graphSync, runs: generations };
   });
 
-  const draft = useGraphDraft(snapshot.graph, sync.schedule);
+  const [limits] = useState({ maxNodes: config.maxNodes, maxEdges: config.maxEdges });
+  const draft = useGraphDraft(snapshot.graph, limits, sync.schedule);
   const { setNotice, replace } = draft;
 
   useEffect(() => {

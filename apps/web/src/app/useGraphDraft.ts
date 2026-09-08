@@ -8,7 +8,13 @@ import type { FlowEdge, FlowGraph, FlowNode } from '@/graph/serialize';
 import { pruneEdges, toFlow, toFlowNode, toGraph } from '@/graph/serialize';
 import { newId } from './ids';
 
-export const useGraphDraft = (initial: GraphData, onChange: (graph: GraphData) => void) => {
+export type GraphLimits = { maxNodes: number; maxEdges: number };
+
+export const useGraphDraft = (
+  initial: GraphData,
+  limits: GraphLimits,
+  onChange: (graph: GraphData) => void,
+) => {
   const [flow, setFlow] = useState<FlowGraph>(() => toFlow(initial));
   const [notice, setNotice] = useState<string | null>(null);
   const current = useRef<FlowGraph>(flow);
@@ -33,17 +39,28 @@ export const useGraphDraft = (initial: GraphData, onChange: (graph: GraphData) =
 
   const addNode = useCallback(
     (kind: NodeKind) => {
+      if (current.current.nodes.length >= limits.maxNodes) {
+        setNotice(`Больше ${String(limits.maxNodes)} нод сервер не примет. Удалите лишние ноды.`);
+        return;
+      }
+      setNotice(null);
       edit((draft) => {
         const index = draft.nodes.filter((node) => node.type === kind).length;
         const created = createNode(kind, placeNode(kind, index), newId());
         return { ...draft, nodes: [...draft.nodes, toFlowNode(created)] };
       });
     },
-    [edit],
+    [edit, limits.maxNodes],
   );
 
   const connect = useCallback(
     ({ source, target }: Connection) => {
+      if (current.current.edges.length >= limits.maxEdges) {
+        setNotice(
+          `Больше ${String(limits.maxEdges)} связей сервер не примет. Удалите лишние связи.`,
+        );
+        return;
+      }
       const verdict = canConnect(toGraph(current.current), { source, target });
       if (!verdict.ok) {
         setNotice(verdict.reason);
@@ -52,7 +69,7 @@ export const useGraphDraft = (initial: GraphData, onChange: (graph: GraphData) =
       setNotice(null);
       edit((draft) => ({ ...draft, edges: [...draft.edges, { id: newId(), source, target }] }));
     },
-    [edit],
+    [edit, limits.maxEdges],
   );
 
   const removeNode = useCallback(
