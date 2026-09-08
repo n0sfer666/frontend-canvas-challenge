@@ -17,6 +17,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+      - run: npm run check:web
       - name: Verify the running API
         shell: bash
         run: |

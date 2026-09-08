@@ -19,6 +19,19 @@ Swagger: [http://localhost:4001/docs/](http://localhost:4001/docs/). Специ�
 
 В Swagger создайте пространство через `POST /api/spaces`, затем получите его граф. Авторизация не нужна. Все пространства видны в одном локальном экземпляре сервера.
 
+## Решение
+
+Фронтенд лежит в `apps/web`, его запуск, устройство и проверенные сценарии описаны в
+[apps/web/README.md](apps/web/README.md).
+
+```sh
+npm ci
+npm run dev       # API на http://127.0.0.1:4001
+npm run dev:web   # фронтенд на http://localhost:5173
+npm run build:web # сборка фронтенда
+npm run check:web # линтер, тесты, сборка
+```
+
 ## Структура и команды
 
 ```text
