@@ -7,6 +7,7 @@ type NodeKindSpec = {
   hint: string;
   accepts: readonly NodeKind[];
   singleOutput: boolean;
+  column: number;
 };
 
 export const nodeKinds: Record<NodeKind, NodeKindSpec> = {
@@ -15,18 +16,21 @@ export const nodeKinds: Record<NodeKind, NodeKindSpec> = {
     hint: 'Опишите изображение и соедините с генератором.',
     accepts: [],
     singleOutput: false,
+    column: 40,
   },
   generator: {
     title: 'Генератор',
     hint: 'Принимает текст и отдаёт результат.',
     accepts: ['prompt'],
     singleOutput: true,
+    column: 380,
   },
   result: {
     title: 'Результат',
     hint: 'Показывает изображение генератора.',
     accepts: ['generator'],
     singleOutput: false,
+    column: 720,
   },
 };
 
@@ -35,6 +39,11 @@ export const nodeKindList: readonly NodeKind[] = ['prompt', 'generator', 'result
 export const hasInput = (kind: NodeKind) => nodeKinds[kind].accepts.length > 0;
 export const hasOutput = (kind: NodeKind) =>
   nodeKindList.some((other) => nodeKinds[other].accepts.includes(kind));
+
+export const placeNode = (kind: NodeKind, index: number): Point => ({
+  x: nodeKinds[kind].column,
+  y: 40 + index * 150,
+});
 
 export const createNode = (kind: NodeKind, position: Point, id: string): GraphNode => {
   const at = { x: Math.round(position.x), y: Math.round(position.y) };
@@ -72,12 +81,6 @@ export const canConnect = (graph: GraphData, { source, target }: Connection): Ve
 
   return { ok: true };
 };
-
-export const detachNode = (graph: GraphData, nodeId: string): GraphData => ({
-  ...graph,
-  nodes: graph.nodes.filter((node) => node.id !== nodeId),
-  edges: graph.edges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId),
-});
 
 export const chainOf = (graph: GraphData, generatorId: string) => {
   const input = graph.edges.find((edge) => edge.target === generatorId);

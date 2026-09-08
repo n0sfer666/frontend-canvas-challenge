@@ -5,7 +5,7 @@ export type FlowNode = Node<GraphNode['data'], NodeKind>;
 export type FlowEdge = Edge;
 export type FlowGraph = { nodes: FlowNode[]; edges: FlowEdge[]; viewport: Viewport };
 
-const toFlowNode = (node: GraphNode): FlowNode => ({
+export const toFlowNode = (node: GraphNode): FlowNode => ({
   id: node.id,
   type: node.type,
   position: { ...node.position },
@@ -23,6 +23,14 @@ const toGraphNode = (node: FlowNode): GraphNode | null => {
   return null;
 };
 
+export const pruneEdges = <TEdge extends { source: string; target: string }>(
+  nodes: readonly { id: string }[],
+  edges: readonly TEdge[],
+): TEdge[] => {
+  const alive = new Set(nodes.map((node) => node.id));
+  return edges.filter((edge) => alive.has(edge.source) && alive.has(edge.target));
+};
+
 export const toFlow = (graph: GraphData): FlowGraph => ({
   nodes: graph.nodes.map(toFlowNode),
   edges: graph.edges.map((edge) => ({ id: edge.id, source: edge.source, target: edge.target })),
@@ -35,10 +43,11 @@ export const toGraph = ({ nodes, edges, viewport }: FlowGraph): GraphData => {
     const saved = toGraphNode(node);
     if (saved !== null) kept.push(saved);
   }
-  const alive = new Set(kept.map((node) => node.id));
-  const links: GraphEdge[] = edges
-    .filter((edge) => alive.has(edge.source) && alive.has(edge.target))
-    .map((edge) => ({ id: edge.id, source: edge.source, target: edge.target }));
+  const links: GraphEdge[] = pruneEdges(kept, edges).map((edge) => ({
+    id: edge.id,
+    source: edge.source,
+    target: edge.target,
+  }));
   return { nodes: kept, edges: links, viewport: { ...viewport } };
 };
 

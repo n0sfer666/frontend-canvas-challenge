@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { GraphData } from '@/api/types';
-import { canConnect, createNode, detachNode, nodeKinds } from './rules';
+import { canConnect, createNode, nodeKinds, placeNode } from './rules';
 
 const graph = (nodes: GraphData['nodes'], edges: GraphData['edges'] = []): GraphData => ({
   nodes,
@@ -76,19 +76,10 @@ describe('canConnect', () => {
   });
 });
 
-describe('detachNode', () => {
-  it('удаляет ноду вместе со всеми её связями', () => {
-    const linked = graph(
-      [prompt, generator, result],
-      [
-        { id: 'e1', source: 'p1', target: 'g1' },
-        { id: 'e2', source: 'g1', target: 'r1' },
-      ],
-    );
-
-    const next = detachNode(linked, 'g1');
-
-    expect(next.nodes.map((node) => node.id)).toEqual(['p1', 'r1']);
-    expect(next.edges).toEqual([]);
+describe('placeNode', () => {
+  it('разводит типы нод по колонкам и не наслаивает соседей', () => {
+    expect(placeNode('prompt', 0).x).toBeLessThan(placeNode('generator', 0).x);
+    expect(placeNode('generator', 0).x).toBeLessThan(placeNode('result', 0).x);
+    expect(placeNode('prompt', 1).y).toBeGreaterThan(placeNode('prompt', 0).y);
   });
 });

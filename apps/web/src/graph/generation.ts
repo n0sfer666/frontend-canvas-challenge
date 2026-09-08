@@ -157,7 +157,8 @@ export const createGenerations = ({
     }
   };
 
-  const adopt = (list: GenerationData[]) => {
+  const adopt = (list: readonly GenerationData[]) => {
+    if (list.length === 0) return;
     for (const data of list) {
       attempts += 1;
       stopPoll(data.nodeId);

@@ -85,7 +85,7 @@ export const createGraphSync = ({ etag, graph, debounceMs, save, onState }: Opti
   };
 
   return {
-    schedule(next: GraphData) {
+    schedule: (next: GraphData) => {
       if (disposed) return;
       if (draft === null && saved !== null && sameGraph(saved, next)) return;
       draft = next;
@@ -95,7 +95,7 @@ export const createGraphSync = ({ etag, graph, debounceMs, save, onState }: Opti
     },
     flush,
     retry: flush,
-    reset(snapshot: GraphSnapshot) {
+    reset: (snapshot: GraphSnapshot) => {
       stopTimer();
       draft = null;
       version = snapshot.etag;
@@ -105,7 +105,7 @@ export const createGraphSync = ({ etag, graph, debounceMs, save, onState }: Opti
     etag: () => version,
     draft: () => draft,
     state: () => state,
-    dispose() {
+    dispose: () => {
       disposed = true;
       stopTimer();
     },
