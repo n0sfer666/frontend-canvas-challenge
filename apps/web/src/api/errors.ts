@@ -41,6 +41,7 @@ const byCode: Record<string, ErrorHint> = {
   GENERATION_NOT_FOUND: { message: 'Генерация не найдена.' },
   VALIDATION_ERROR: { message: 'Сервер отклонил данные запроса.' },
   PAYLOAD_TOO_LARGE: { message: 'Граф слишком большой для сохранения.' },
+  EMPTY_RESPONSE: { message: 'Сервер вернул пустой ответ.', action: 'Повторите запрос.' },
 };
 
 const byStatus: Record<number, string> = {
