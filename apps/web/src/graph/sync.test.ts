@@ -41,6 +41,19 @@ describe('createGraphSync', () => {
     vi.useRealTimers();
   });
 
+  it('повторное планирование того же графа не создаёт запрос', async () => {
+    const save = vi.fn(savedAs('"v1"'));
+    const { sync } = setup(save);
+
+    sync.schedule(graph(1));
+    await vi.advanceTimersByTimeAsync(600);
+    sync.schedule(graph(1));
+    await vi.advanceTimersByTimeAsync(600);
+
+    expect(save).toHaveBeenCalledOnce();
+    expect(sync.state().status).toBe('saved');
+  });
+
   it('серия быстрых правок даёт одно сохранение последнего состояния', async () => {
     const save = vi.fn(savedAs('"v1"'));
     const { sync } = setup(save);

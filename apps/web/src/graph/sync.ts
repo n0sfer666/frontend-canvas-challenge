@@ -1,5 +1,6 @@
 import { isApiError } from '@/api/errors';
 import type { GraphData, GraphSnapshot } from '@/api/types';
+import { sameGraph } from './serialize';
 
 export type SyncStatus = 'saved' | 'pending' | 'saving' | 'error' | 'conflict';
 
@@ -79,13 +80,14 @@ export const createGraphSync = ({ etag, graph, debounceMs, save, onState }: Opti
       await pump();
       if (failed()) break;
     }
-    if (failed()) throw (state as { error: unknown }).error;
+    if (state.status === 'error' || state.status === 'conflict') throw state.error;
     return { graph: saved, etag: version };
   };
 
   return {
     schedule(next: GraphData) {
       if (disposed) return;
+      if (draft === null && saved !== null && sameGraph(saved, next)) return;
       draft = next;
       publish({ status: 'pending' });
       stopTimer();
