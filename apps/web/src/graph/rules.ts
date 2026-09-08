@@ -1,11 +1,12 @@
-import type { GraphData, GraphNode, NodeKind, Viewport } from '@/api/types';
+import type { GraphData, GraphNode, NodeKind } from '@/api/types';
+
+export type Point = { x: number; y: number };
 
 type NodeKindSpec = {
   title: string;
   hint: string;
   accepts: readonly NodeKind[];
   singleOutput: boolean;
-  createData: () => GraphNode['data'];
 };
 
 export const nodeKinds: Record<NodeKind, NodeKindSpec> = {
@@ -14,41 +15,34 @@ export const nodeKinds: Record<NodeKind, NodeKindSpec> = {
     hint: 'Опишите изображение и соедините с генератором.',
     accepts: [],
     singleOutput: false,
-    createData: () => ({ text: '' }),
   },
   generator: {
     title: 'Генератор',
     hint: 'Принимает текст и отдаёт результат.',
     accepts: ['prompt'],
     singleOutput: true,
-    createData: () => ({ label: 'Генератор' }),
   },
   result: {
     title: 'Результат',
     hint: 'Показывает изображение генератора.',
     accepts: ['generator'],
     singleOutput: false,
-    createData: () => ({ label: 'Результат' }),
   },
 };
 
-export const nodeKindList = Object.keys(nodeKinds) as NodeKind[];
+export const nodeKindList: readonly NodeKind[] = ['prompt', 'generator', 'result'];
 
 export const hasInput = (kind: NodeKind) => nodeKinds[kind].accepts.length > 0;
 export const hasOutput = (kind: NodeKind) =>
   nodeKindList.some((other) => nodeKinds[other].accepts.includes(kind));
 
-export const createNode = (
-  kind: NodeKind,
-  position: Viewport | { x: number; y: number },
-  id: string,
-): GraphNode =>
-  ({
-    id,
-    type: kind,
-    position: { x: position.x, y: position.y },
-    data: nodeKinds[kind].createData(),
-  }) as GraphNode;
+export const createNode = (kind: NodeKind, position: Point, id: string): GraphNode => {
+  const at = { x: Math.round(position.x), y: Math.round(position.y) };
+  if (kind === 'prompt') return { id, type: 'prompt', position: at, data: { text: '' } };
+  if (kind === 'generator')
+    return { id, type: 'generator', position: at, data: { label: nodeKinds.generator.title } };
+  return { id, type: 'result', position: at, data: { label: nodeKinds.result.title } };
+};
 
 export type Connection = { source: string; target: string };
 export type Verdict = { ok: true } | { ok: false; reason: string };
