@@ -22,6 +22,7 @@ const config: ApiConfig = {
   maxNodes: 20,
   maxEdges: 20,
   nodeTypes: ['prompt', 'generator', 'result'],
+  links: {},
 };
 
 const space: SpaceData = {
@@ -137,6 +138,29 @@ describe('экран канваса', () => {
 
     expect(await screen.findByText(/SIMULATED_FAILURE/)).toBeInTheDocument();
     expect(start).toBeEnabled();
+  });
+
+  it('конфликт версии графа предлагает перечитать сервер, а не повторить запись', async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.put(`/api/spaces/${spaceId}/graph`, () =>
+        HttpResponse.json(
+          { error: { code: 'GRAPH_VERSION_CONFLICT', message: 'Граф изменился' } },
+          { status: 412 },
+        ),
+      ),
+      ...baseHandlers([]),
+    );
+
+    await openCanvas();
+    const field = screen.getByLabelText('Описание изображения');
+    await user.type(field, ' и озеро');
+
+    expect(
+      await screen.findByRole('button', { name: 'Перечитать серверный граф' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Повторить сохранение' })).not.toBeInTheDocument();
+    expect(field).toHaveValue('Горы и озеро');
   });
 
   it('правка текста уходит на сервер одним сохранением', async () => {

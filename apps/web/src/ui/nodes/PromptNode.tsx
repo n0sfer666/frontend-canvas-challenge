@@ -2,6 +2,7 @@ import type { NodeProps } from '@xyflow/react';
 import { useSessionContext } from '@/app/session-context';
 import type { PromptFlowNode } from '@/graph/serialize';
 import { cx } from '../cx';
+import { noDrag, noWheel } from './flowClasses';
 import { NodeFrame } from './NodeFrame';
 import styles from './node.module.css';
 
@@ -15,7 +16,7 @@ export const PromptNode = ({ id, data }: NodeProps<PromptFlowNode>) => {
       </label>
       <textarea
         id={`prompt-${id}`}
-        className={cx(styles.node__input, 'nodrag', 'nowheel')}
+        className={cx(styles.node__input, noDrag, noWheel)}
         value={data.text}
         rows={4}
         maxLength={2000}

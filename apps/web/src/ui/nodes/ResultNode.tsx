@@ -1,4 +1,5 @@
 import type { NodeProps } from '@xyflow/react';
+import { useApi } from '@/app/api-context';
 import { useSessionContext } from '@/app/session-context';
 import type { ResultFlowNode } from '@/graph/serialize';
 import { NodeFrame } from './NodeFrame';
@@ -6,6 +7,7 @@ import styles from './node.module.css';
 
 export const ResultNode = ({ id }: NodeProps<ResultFlowNode>) => {
   const { resultFor } = useSessionContext();
+  const { assetUrl } = useApi();
   const result = resultFor(id);
 
   return (
@@ -24,7 +26,11 @@ export const ResultNode = ({ id }: NodeProps<ResultFlowNode>) => {
         </p>
       )}
       {result?.status === 'succeeded' && result.imageUrl !== null && (
-        <img className={styles.node__image} src={result.imageUrl} alt="Результат генерации" />
+        <img
+          className={styles.node__image}
+          src={assetUrl(result.imageUrl)}
+          alt="Результат генерации"
+        />
       )}
     </NodeFrame>
   );

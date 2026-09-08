@@ -21,7 +21,7 @@ export const StatusBar = () => {
         {saveText[save.status]}
         {detail === '' ? '' : `. ${detail}`}
       </p>
-      {(save.status === 'error' || save.status === 'conflict') && (
+      {save.status === 'error' && (
         <button
           type="button"
           className={styles.status__action}

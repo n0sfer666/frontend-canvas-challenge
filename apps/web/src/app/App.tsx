@@ -25,8 +25,8 @@ export const App = () => {
     enabled,
   });
 
-  const queries = [config, space, graph, history];
-  const failed = queries.find((query) => query.error !== null);
+  const required = [config, space, graph];
+  const failed = required.find((query) => query.error !== null);
   if (failed !== undefined)
     return (
       <Splash
@@ -41,7 +41,7 @@ export const App = () => {
       />
     );
 
-  if (!config.data || !space.data || !graph.data || !history.data)
+  if (!config.data || !space.data || !graph.data || history.isPending)
     return <Splash title="Открываем рабочее пространство" message="Загружаем граф и историю…" />;
 
   return (
@@ -50,7 +50,7 @@ export const App = () => {
       space={space.data}
       snapshot={graph.data}
       config={config.data}
-      history={history.data}
+      history={history.data ?? []}
     />
   );
 };

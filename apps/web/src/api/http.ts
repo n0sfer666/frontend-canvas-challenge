@@ -1,25 +1,38 @@
+import { Type } from '@sinclair/typebox';
+import type { TSchema } from '@sinclair/typebox';
+import { Value } from '@sinclair/typebox/value';
 import { ApiError, codeForStatus } from './errors';
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT';
 
-export type HttpRequest = {
+export type Schema<TData> = TSchema & { static: TData };
+
+export type HttpRequest<TData> = {
   method: HttpMethod;
   path: string;
+  schema?: Schema<TData>;
   body?: unknown;
   headers?: Record<string, string | undefined>;
   signal?: AbortSignal;
 };
 
-export type HttpResponse<T> = {
+export type HttpResponse<TData> = {
   status: number;
-  data: T | null;
+  data: TData | null;
   etag: string | null;
   headers: Headers;
 };
 
-export type Http = <T>(request: HttpRequest) => Promise<HttpResponse<T>>;
+export type Http = <TData>(request: HttpRequest<TData>) => Promise<HttpResponse<TData>>;
 
 type Options = { baseUrl: string; fetch?: typeof fetch; headers?: () => Record<string, string> };
+
+const ErrorBody = Type.Object({
+  error: Type.Object({ code: Type.String(), message: Type.Optional(Type.String()) }),
+});
+
+export const joinUrl = (baseUrl: string, path: string) =>
+  `${baseUrl.replace(/\/$/, '')}${path.startsWith('/') ? path : `/${path}`}`;
 
 const withoutBody = (response: Response) =>
   response.status === 204 ||
@@ -34,12 +47,18 @@ const readBody = async (response: Response): Promise<unknown> => {
     .catch(() => null);
 };
 
+const named = (cause: unknown): cause is { name: unknown } =>
+  typeof cause === 'object' && cause !== null && 'name' in cause;
+
+const isAbort = (cause: unknown) => named(cause) && cause.name === 'AbortError';
+
 const errorFrom = (response: Response, payload: unknown) => {
-  const body = payload as { error?: { code?: string; message?: string } } | null;
+  const known = Value.Check(ErrorBody, payload);
+  const message = known ? payload.error.message : undefined;
   return new ApiError({
     status: response.status,
-    code: body?.error?.code ?? codeForStatus(response.status),
-    ...(body?.error?.message === undefined ? {} : { serverMessage: body.error.message }),
+    code: known ? payload.error.code : codeForStatus(response.status),
+    ...(message === undefined ? {} : { serverMessage: message }),
     requestId: response.headers.get('x-request-id'),
   });
 };
@@ -52,8 +71,18 @@ const mergeHeaders = (parts: (Record<string, string | undefined> | undefined)[])
   return headers;
 };
 
+const parse = <TData>(
+  schema: Schema<TData> | undefined,
+  payload: unknown,
+  status: number,
+): TData | null => {
+  if (payload === null || schema === undefined) return null;
+  if (Value.Check(schema, payload)) return payload;
+  throw new ApiError({ status, code: 'INVALID_RESPONSE' });
+};
+
 export const createHttp = ({ baseUrl, fetch: send = fetch, headers }: Options): Http => {
-  return async <T>(request: HttpRequest): Promise<HttpResponse<T>> => {
+  return async <TData>(request: HttpRequest<TData>) => {
     const init: RequestInit = {
       method: request.method,
       headers: mergeHeaders([
@@ -67,9 +96,9 @@ export const createHttp = ({ baseUrl, fetch: send = fetch, headers }: Options): 
 
     let response: Response;
     try {
-      response = await send(`${baseUrl}${request.path}`, init);
+      response = await send(joinUrl(baseUrl, request.path), init);
     } catch (cause) {
-      if ((cause as { name?: string } | null)?.name === 'AbortError') throw cause;
+      if (isAbort(cause)) throw cause;
       throw new ApiError({ status: 0, code: 'NETWORK_ERROR' });
     }
 
@@ -78,7 +107,7 @@ export const createHttp = ({ baseUrl, fetch: send = fetch, headers }: Options): 
 
     return {
       status: response.status,
-      data: payload as T | null,
+      data: parse(request.schema, payload, response.status),
       etag: response.headers.get('etag'),
       headers: response.headers,
     };

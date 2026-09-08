@@ -1,13 +1,15 @@
 import { ApiError } from './errors';
-import type { Http } from './http';
-import type {
-  ApiConfig,
-  GenerationData,
-  GenerationScenario,
-  GraphData,
-  GraphSnapshot,
-  SpaceData,
-} from './types';
+import type { Http, HttpRequest } from './http';
+import { joinUrl } from './http';
+import {
+  ConfigSchema,
+  GenerationListSchema,
+  GenerationSchema,
+  GraphSchema,
+  SpaceListSchema,
+  SpaceSchema,
+} from './schemas';
+import type { GenerationScenario, GraphData, GraphSnapshot } from './types';
 
 const paths = {
   config: '/api/config',
@@ -35,52 +37,75 @@ export type StartGenerationInput = {
 
 export type SaveGraphInput = { spaceId: string; graph: GraphData; etag: string };
 
-export const createApi = (http: Http) => {
-  const snapshot = async (request: Parameters<Http>[0]): Promise<GraphSnapshot> => {
-    const response = await http<GraphData>(request);
+export const createApi = (http: Http, baseUrl = '') => {
+  const snapshot = async (request: HttpRequest<GraphData>): Promise<GraphSnapshot> => {
+    const response = await http(request);
     return { graph: required(response.data), etag: required(response.etag) };
   };
 
   return {
+    assetUrl: (path: string) => joinUrl(baseUrl, path),
+
     getConfig: async (signal?: AbortSignal) =>
-      required((await http<ApiConfig>({ method: 'GET', path: paths.config, signal })).data),
+      required(
+        (await http({ method: 'GET', path: paths.config, schema: ConfigSchema, signal })).data,
+      ),
 
     listSpaces: async (signal?: AbortSignal) =>
-      required((await http<SpaceData[]>({ method: 'GET', path: paths.spaces, signal })).data),
+      required(
+        (await http({ method: 'GET', path: paths.spaces, schema: SpaceListSchema, signal })).data,
+      ),
 
     createSpace: async (title: string, signal?: AbortSignal) =>
       required(
-        (await http<SpaceData>({ method: 'POST', path: paths.spaces, body: { title }, signal }))
-          .data,
+        (
+          await http({
+            method: 'POST',
+            path: paths.spaces,
+            body: { title },
+            schema: SpaceSchema,
+            signal,
+          })
+        ).data,
       ),
 
     getSpace: async (spaceId: string, signal?: AbortSignal) =>
-      required((await http<SpaceData>({ method: 'GET', path: paths.space(spaceId), signal })).data),
+      required(
+        (await http({ method: 'GET', path: paths.space(spaceId), schema: SpaceSchema, signal })).data,
+      ),
 
     getGraph: (spaceId: string, signal?: AbortSignal) =>
-      snapshot({ method: 'GET', path: paths.graph(spaceId), signal }),
+      snapshot({ method: 'GET', path: paths.graph(spaceId), schema: GraphSchema, signal }),
 
     saveGraph: ({ spaceId, graph, etag }: SaveGraphInput, signal?: AbortSignal) =>
       snapshot({
         method: 'PUT',
         path: paths.graph(spaceId),
         body: graph,
+        schema: GraphSchema,
         headers: { 'If-Match': etag },
         signal,
       }),
 
     listGenerations: async (spaceId: string, signal?: AbortSignal) =>
       required(
-        (await http<GenerationData[]>({ method: 'GET', path: paths.generations(spaceId), signal }))
-          .data,
+        (
+          await http({
+            method: 'GET',
+            path: paths.generations(spaceId),
+            schema: GenerationListSchema,
+            signal,
+          })
+        ).data,
       ),
 
     getGeneration: async (spaceId: string, generationId: string, signal?: AbortSignal) =>
       required(
         (
-          await http<GenerationData>({
+          await http({
             method: 'GET',
             path: paths.generation(spaceId, generationId),
+            schema: GenerationSchema,
             signal,
           })
         ).data,
@@ -89,7 +114,7 @@ export const createApi = (http: Http) => {
     startGeneration: async (input: StartGenerationInput, signal?: AbortSignal) =>
       required(
         (
-          await http<GenerationData>({
+          await http({
             method: 'POST',
             path: paths.generations(input.spaceId),
             body: {
@@ -97,6 +122,7 @@ export const createApi = (http: Http) => {
               graphETag: input.graphETag,
               scenario: input.scenario,
             },
+            schema: GenerationSchema,
             headers: { 'Idempotency-Key': input.idempotencyKey },
             signal,
           })

@@ -17,6 +17,7 @@ export const useGraphDraft = (
 ) => {
   const [flow, setFlow] = useState<FlowGraph>(() => toFlow(initial));
   const [notice, setNotice] = useState<string | null>(null);
+  const [revision, setRevision] = useState(0);
   const current = useRef<FlowGraph>(flow);
 
   const edit = useCallback(
@@ -35,6 +36,7 @@ export const useGraphDraft = (
     current.current = next;
     setFlow(next);
     setNotice(null);
+    setRevision((value) => value + 1);
   }, []);
 
   const addNode = useCallback(
@@ -45,8 +47,8 @@ export const useGraphDraft = (
       }
       setNotice(null);
       edit((draft) => {
-        const index = draft.nodes.filter((node) => node.type === kind).length;
-        const created = createNode(kind, placeNode(kind, index), newId());
+        const taken = draft.nodes.map((node) => node.position);
+        const created = createNode(kind, placeNode(kind, taken), newId());
         return { ...draft, nodes: [...draft.nodes, toFlowNode(created)] };
       });
     },
@@ -114,6 +116,7 @@ export const useGraphDraft = (
 
   return {
     flow,
+    revision,
     notice,
     setNotice,
     graph: useCallback(() => toGraph(current.current), []),

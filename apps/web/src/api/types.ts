@@ -1,4 +1,6 @@
+import type { Config } from '@canvas/contracts';
 import type { GenerationData, GraphData, NodeData, SpaceData } from '@canvas/contracts';
+import type { Static } from '@sinclair/typebox';
 
 export type { GenerationData, GraphData, NodeData, SpaceData };
 
@@ -11,11 +13,4 @@ export type GenerationScenario = GenerationData['scenario'];
 
 export type GraphSnapshot = { graph: GraphData; etag: string };
 
-export type ApiConfig = {
-  debounceMs: number;
-  pollIntervalMs: number;
-  generationDelayMs: number;
-  maxNodes: number;
-  maxEdges: number;
-  nodeTypes: NodeKind[];
-};
+export type ApiConfig = Static<typeof Config>;

@@ -19,7 +19,7 @@ export const AppProviders = ({ children }: AppProvidersProps) => {
         defaultOptions: { queries: { retry: false, refetchOnWindowFocus: false, staleTime: 0 } },
       }),
   );
-  const [api] = useState(() => createApi(createHttp({ baseUrl })));
+  const [api] = useState(() => createApi(createHttp({ baseUrl }), baseUrl));
 
   return (
     <QueryClientProvider client={queryClient}>

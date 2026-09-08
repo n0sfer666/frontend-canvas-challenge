@@ -1,33 +1,16 @@
 import type { StartGenerationInput } from '@/api/endpoints';
 import { isApiError } from '@/api/errors';
 import type { GenerationData, GenerationScenario, GenerationStatus } from '@/api/types';
+import { createPoller } from './poller';
+import type { ResultView, Run } from './run';
 import type { FlushResult } from './sync';
 
-export type RunStatus = 'saving' | 'starting' | GenerationStatus | 'error';
-
-export type Run = {
-  generatorId: string;
-  resultNodeId: string | null;
-  generationId: string | null;
-  status: RunStatus;
-  imageUrl: string | null;
-  failureCode: string | null;
-  error: unknown;
-  key: string;
-  attempt: number;
-};
-
-export type ResultView = {
-  generationId: string;
-  status: GenerationStatus;
-  imageUrl: string | null;
-  failureCode: string | null;
-  attempt: number;
-};
+export type { Run, ResultView, RunRequest, RunStatus } from './run';
 
 type Options = {
   spaceId: string;
   pollIntervalMs: number;
+  maxPollFailures?: number;
   flush: () => Promise<FlushResult>;
   newKey: () => string;
   api: {
@@ -39,14 +22,17 @@ type Options = {
 
 const isSettled = (status: GenerationStatus) => status !== 'processing';
 
-const isActive = (status: RunStatus) =>
-  status === 'saving' || status === 'starting' || status === 'processing';
-
 const lostResponse = (error: unknown) => isApiError(error) && error.isNetwork;
+
+const hopeless = (error: unknown) =>
+  isApiError(error) && error.status >= 400 && error.status < 500;
+
+const byCreatedAt = (a: GenerationData, b: GenerationData) => a.createdAt.localeCompare(b.createdAt);
 
 export const createGenerations = ({
   spaceId,
   pollIntervalMs,
+  maxPollFailures = 5,
   flush,
   newKey,
   api,
@@ -54,15 +40,9 @@ export const createGenerations = ({
 }: Options) => {
   const runs = new Map<string, Run>();
   const results = new Map<string, ResultView>();
-  const timers = new Map<string, ReturnType<typeof setTimeout>>();
+  const failures = new Map<string, number>();
+  const poller = createPoller({ intervalMs: pollIntervalMs });
   let attempts = 0;
-  let disposed = false;
-
-  const stopPoll = (generatorId: string) => {
-    const timer = timers.get(generatorId);
-    if (timer !== undefined) clearTimeout(timer);
-    timers.delete(generatorId);
-  };
 
   const patch = (generatorId: string, attempt: number, changes: Partial<Run>) => {
     const run = runs.get(generatorId);
@@ -83,6 +63,12 @@ export const createGenerations = ({
     });
   };
 
+  const schedule = (generatorId: string) => {
+    poller.schedule(generatorId, () => {
+      void poll(generatorId);
+    });
+  };
+
   const apply = (generatorId: string, data: GenerationData) => {
     const run = runs.get(generatorId);
     if (run === undefined) return;
@@ -96,39 +82,43 @@ export const createGenerations = ({
       error: null,
     });
     remember(data, run.attempt);
-    if (isSettled(data.status)) stopPoll(generatorId);
+    if (isSettled(data.status)) poller.stop(generatorId);
     else schedule(generatorId);
+  };
+
+  const giveUp = (generatorId: string, attempt: number, error: unknown) => {
+    poller.stop(generatorId);
+    failures.delete(generatorId);
+    patch(generatorId, attempt, { status: 'error', error });
   };
 
   const poll = async (generatorId: string) => {
     const run = runs.get(generatorId);
-    if (disposed || run?.generationId == null) return;
+    if (poller.stopped() || run?.generationId == null) return;
     try {
       apply(generatorId, await api.getGeneration(spaceId, run.generationId));
-    } catch {
-      schedule(generatorId);
+      failures.delete(generatorId);
+    } catch (error) {
+      const seen = (failures.get(generatorId) ?? 0) + 1;
+      failures.set(generatorId, seen);
+      if (hopeless(error) || seen >= maxPollFailures) giveUp(generatorId, run.attempt, error);
+      else schedule(generatorId);
     }
   };
 
-  function schedule(generatorId: string) {
-    stopPoll(generatorId);
-    if (disposed) return;
-    timers.set(
-      generatorId,
-      setTimeout(() => {
-        void poll(generatorId);
-      }, pollIntervalMs),
-    );
-  }
+  const resumeOf = (previous: Run | undefined) => {
+    if (previous === undefined || previous.status !== 'error') return null;
+    if (!lostResponse(previous.error) || previous.request === null) return null;
+    return { key: previous.key, request: previous.request };
+  };
 
   const start = async (generatorId: string, scenario: GenerationScenario) => {
     const previous = runs.get(generatorId);
-    const reuse =
-      previous !== undefined && previous.status === 'error' && lostResponse(previous.error);
-    const key = reuse ? previous.key : newKey();
+    const resumed = resumeOf(previous);
+    const key = resumed?.key ?? newKey();
     attempts += 1;
     const attempt = attempts;
-    stopPoll(generatorId);
+    poller.stop(generatorId);
     runs.set(generatorId, {
       generatorId,
       resultNodeId: previous?.resultNodeId ?? null,
@@ -139,19 +129,20 @@ export const createGenerations = ({
       error: null,
       key,
       attempt,
+      request: resumed?.request ?? null,
     });
     onChange?.();
     try {
-      const saved = await flush();
-      patch(generatorId, attempt, { status: 'starting' });
+      const request = resumed?.request ?? { graphETag: (await flush()).etag, scenario };
+      patch(generatorId, attempt, { status: 'starting', request });
       const data = await api.startGeneration({
         spaceId,
         nodeId: generatorId,
-        graphETag: saved.etag,
-        scenario,
+        graphETag: request.graphETag,
+        scenario: request.scenario,
         idempotencyKey: key,
       });
-      if (!disposed) apply(generatorId, data);
+      if (!poller.stopped()) apply(generatorId, data);
     } catch (error) {
       patch(generatorId, attempt, { status: 'error', error });
     }
@@ -159,9 +150,9 @@ export const createGenerations = ({
 
   const adopt = (list: readonly GenerationData[]) => {
     if (list.length === 0) return;
-    for (const data of list) {
+    for (const data of [...list].sort(byCreatedAt)) {
       attempts += 1;
-      stopPoll(data.nodeId);
+      poller.stop(data.nodeId);
       runs.set(data.nodeId, {
         generatorId: data.nodeId,
         resultNodeId: data.resultNodeId,
@@ -172,6 +163,7 @@ export const createGenerations = ({
         error: null,
         key: data.id,
         attempt: attempts,
+        request: { graphETag: data.graphETag, scenario: data.scenario },
       });
       remember(data, attempts);
       if (!isSettled(data.status)) schedule(data.nodeId);
@@ -179,18 +171,23 @@ export const createGenerations = ({
     onChange?.();
   };
 
-  const dispose = () => {
-    disposed = true;
-    for (const generatorId of [...timers.keys()]) stopPoll(generatorId);
+  const forget = (nodeId: string) => {
+    const run = runs.get(nodeId);
+    poller.stop(nodeId);
+    failures.delete(nodeId);
+    runs.delete(nodeId);
+    results.delete(nodeId);
+    if (run?.resultNodeId != null) results.delete(run.resultNodeId);
   };
 
   return {
     start,
     adopt,
-    dispose,
+    forget,
+    resume: poller.resume,
+    dispose: poller.dispose,
     runFor: (generatorId: string) => runs.get(generatorId) ?? null,
     resultFor: (resultNodeId: string) => results.get(resultNodeId) ?? null,
-    busy: () => [...runs.values()].some((run) => isActive(run.status)),
   };
 };
 

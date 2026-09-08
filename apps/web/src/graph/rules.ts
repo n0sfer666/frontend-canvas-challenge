@@ -40,10 +40,13 @@ export const hasInput = (kind: NodeKind) => nodeKinds[kind].accepts.length > 0;
 export const hasOutput = (kind: NodeKind) =>
   nodeKindList.some((other) => nodeKinds[other].accepts.includes(kind));
 
-export const placeNode = (kind: NodeKind, index: number): Point => ({
-  x: nodeKinds[kind].column,
-  y: 40 + index * 150,
-});
+export const placeNode = (kind: NodeKind, taken: readonly Point[]): Point => {
+  const x = nodeKinds[kind].column;
+  const busy = new Set(taken.filter((point) => point.x === x).map((point) => point.y));
+  let y = 40;
+  while (busy.has(y)) y += 150;
+  return { x, y };
+};
 
 export const createNode = (kind: NodeKind, position: Point, id: string): GraphNode => {
   const at = { x: Math.round(position.x), y: Math.round(position.y) };

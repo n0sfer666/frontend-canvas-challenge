@@ -8,14 +8,7 @@ export type FlowNode = PromptFlowNode | GeneratorFlowNode | ResultFlowNode;
 export type FlowEdge = Edge;
 export type FlowGraph = { nodes: FlowNode[]; edges: FlowEdge[]; viewport: Viewport };
 
-export const toFlowNode = (node: GraphNode): FlowNode => {
-  const position = { ...node.position };
-  if (node.type === 'prompt')
-    return { id: node.id, type: 'prompt', position, data: { text: node.data.text } };
-  if (node.type === 'generator')
-    return { id: node.id, type: 'generator', position, data: { label: node.data.label } };
-  return { id: node.id, type: 'result', position, data: { label: node.data.label } };
-};
+export const toFlowNode = (node: GraphNode): FlowNode => ({ ...node, position: { ...node.position } });
 
 const toGraphNode = (node: FlowNode): GraphNode => {
   const position = { x: Math.round(node.position.x), y: Math.round(node.position.y) };

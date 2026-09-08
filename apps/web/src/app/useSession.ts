@@ -22,10 +22,15 @@ type Input = {
 const incomplete =
   'Соедините текстовую ноду с генератором, генератор — с результатом и заполните описание.';
 
+const linkHint = 'Выберите вход другой ноды и нажмите Enter, чтобы создать связь.';
+
+const sourceFirst = 'Сначала выберите выход ноды-источника.';
+
 export const useSession = ({ api, spaceId, snapshot, config, history }: Input) => {
   const [save, setSave] = useState<SyncState>({ status: 'saved' });
   const [, bump] = useReducer((tick: number) => tick + 1, 0);
   const [restored] = useState(history);
+  const [linking, setLinking] = useState<string | null>(null);
 
   const [{ sync, runs }] = useState(() => {
     const graphSync = createGraphSync({
@@ -48,9 +53,11 @@ export const useSession = ({ api, spaceId, snapshot, config, history }: Input) =
 
   const [limits] = useState({ maxNodes: config.maxNodes, maxEdges: config.maxEdges });
   const draft = useGraphDraft(snapshot.graph, limits, sync.schedule);
-  const { setNotice, replace } = draft;
+  const { setNotice, replace, connect } = draft;
 
   useEffect(() => {
+    sync.resume();
+    runs.resume();
     runs.adopt(restored);
     return () => {
       sync.dispose();
@@ -75,10 +82,14 @@ export const useSession = ({ api, spaceId, snapshot, config, history }: Input) =
   );
 
   const reload = useCallback(async () => {
-    const fresh = await api.getGraph(spaceId);
-    sync.reset(fresh);
-    replace(fresh.graph);
-  }, [api, spaceId, sync, replace]);
+    try {
+      const fresh = await api.getGraph(spaceId);
+      sync.reset(fresh);
+      replace(fresh.graph);
+    } catch (error) {
+      setNotice(errorText(error));
+    }
+  }, [api, spaceId, sync, replace, setNotice]);
 
   const retrySave = useCallback(async () => {
     try {
@@ -88,6 +99,35 @@ export const useSession = ({ api, spaceId, snapshot, config, history }: Input) =
     }
   }, [sync, setNotice]);
 
+  const removeNode = useCallback(
+    (nodeId: string) => {
+      draft.removeNode(nodeId);
+      runs.forget(nodeId);
+      setLinking((current) => (current === nodeId ? null : current));
+    },
+    [draft, runs],
+  );
+
+  const pickSource = useCallback(
+    (nodeId: string) => {
+      setLinking(nodeId);
+      setNotice(linkHint);
+    },
+    [setNotice],
+  );
+
+  const linkTo = useCallback(
+    (nodeId: string) => {
+      if (linking === null) {
+        setNotice(sourceFirst);
+        return;
+      }
+      connect({ source: linking, target: nodeId });
+      setLinking(null);
+    },
+    [linking, connect, setNotice],
+  );
+
   const dismissNotice = useCallback(() => {
     setNotice(null);
   }, [setNotice]);
@@ -96,22 +136,25 @@ export const useSession = ({ api, spaceId, snapshot, config, history }: Input) =
     nodes: draft.flow.nodes,
     edges: draft.flow.edges,
     viewport: draft.flow.viewport,
+    revision: draft.revision,
     notice: draft.notice,
     save,
+    linking,
     addNode: draft.addNode,
-    connect: draft.connect,
-    removeNode: draft.removeNode,
+    connect,
+    removeNode,
     updateText: draft.updateText,
     onNodesChange: draft.onNodesChange,
     onEdgesChange: draft.onEdgesChange,
     onViewportChange: draft.onViewportChange,
     dismissNotice,
+    pickSource,
+    linkTo,
     generate,
     reload,
     retrySave,
     runFor: runs.runFor,
     resultFor: runs.resultFor,
-    busy: runs.busy,
   };
 };
 

@@ -5,6 +5,7 @@ import { useSessionContext } from '@/app/session-context';
 import type { GeneratorFlowNode } from '@/graph/serialize';
 import type { RunStatus } from '@/graph/generation';
 import { cx } from '../cx';
+import { noDrag } from './flowClasses';
 import { NodeFrame } from './NodeFrame';
 import styles from './node.module.css';
 
@@ -32,7 +33,7 @@ export const GeneratorNode = ({ id }: NodeProps<GeneratorFlowNode>) => {
       </label>
       <select
         id={`scenario-${id}`}
-        className={cx(styles.node__input, 'nodrag')}
+        className={cx(styles.node__input, noDrag)}
         value={scenario}
         onChange={(event) => {
           setScenario(event.target.value === 'failure' ? 'failure' : 'success');
@@ -43,7 +44,7 @@ export const GeneratorNode = ({ id }: NodeProps<GeneratorFlowNode>) => {
       </select>
       <button
         type="button"
-        className={styles.node__submit}
+        className={cx(styles.node__submit, noDrag)}
         disabled={busy}
         onClick={() => {
           void generate(id, scenario);

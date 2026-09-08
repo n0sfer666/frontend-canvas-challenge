@@ -5,7 +5,8 @@ import { sameGraph } from './serialize';
 export type SyncStatus = 'saved' | 'pending' | 'saving' | 'error' | 'conflict';
 
 export type SyncState =
-  { status: 'saved' | 'pending' | 'saving' } | { status: 'error' | 'conflict'; error: unknown };
+  | { status: 'saved' | 'pending' | 'saving' }
+  | { status: 'error' | 'conflict'; error: unknown };
 
 export type FlushResult = { graph: GraphData | null; etag: string };
 
@@ -71,6 +72,7 @@ export const createGraphSync = ({ etag, graph, debounceMs, save, onState }: Opti
   const flush = async (): Promise<FlushResult> => {
     stopTimer();
     for (;;) {
+      if (disposed) break;
       if (inflight) {
         await inflight;
         if (failed()) break;
@@ -89,6 +91,7 @@ export const createGraphSync = ({ etag, graph, debounceMs, save, onState }: Opti
       if (disposed) return;
       if (draft === null && saved !== null && sameGraph(saved, next)) return;
       draft = next;
+      if (state.status === 'conflict') return;
       publish({ status: 'pending' });
       stopTimer();
       timer = setTimeout(() => void pump(), debounceMs);
@@ -105,6 +108,9 @@ export const createGraphSync = ({ etag, graph, debounceMs, save, onState }: Opti
     etag: () => version,
     draft: () => draft,
     state: () => state,
+    resume: () => {
+      disposed = false;
+    },
     dispose: () => {
       disposed = true;
       stopTimer();

@@ -42,6 +42,10 @@ const byCode: Record<string, ErrorHint> = {
   VALIDATION_ERROR: { message: 'Сервер отклонил данные запроса.' },
   PAYLOAD_TOO_LARGE: { message: 'Граф слишком большой для сохранения.' },
   EMPTY_RESPONSE: { message: 'Сервер вернул пустой ответ.', action: 'Повторите запрос.' },
+  INVALID_RESPONSE: {
+    message: 'Сервер вернул ответ неожиданного формата.',
+    action: 'Обновите страницу и повторите действие.',
+  },
 };
 
 const byStatus: Record<number, string> = {

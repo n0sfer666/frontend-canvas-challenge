@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { GraphData } from '@/api/types';
-import { canConnect, createNode, nodeKinds, placeNode } from './rules';
+import { canConnect, createNode, nodeKindList, nodeKinds, placeNode } from './rules';
 
 const graph = (nodes: GraphData['nodes'], edges: GraphData['edges'] = []): GraphData => ({
   nodes,
@@ -78,8 +78,23 @@ describe('canConnect', () => {
 
 describe('placeNode', () => {
   it('разводит типы нод по колонкам и не наслаивает соседей', () => {
-    expect(placeNode('prompt', 0).x).toBeLessThan(placeNode('generator', 0).x);
-    expect(placeNode('generator', 0).x).toBeLessThan(placeNode('result', 0).x);
-    expect(placeNode('prompt', 1).y).toBeGreaterThan(placeNode('prompt', 0).y);
+    const first = placeNode('prompt', []);
+    expect(first.x).toBeLessThan(placeNode('generator', []).x);
+    expect(placeNode('generator', []).x).toBeLessThan(placeNode('result', []).x);
+    expect(placeNode('prompt', [first]).y).toBeGreaterThan(first.y);
+  });
+
+  it('занимает свободный слот, а не наслаивается на оставшиеся ноды', () => {
+    const first = placeNode('prompt', []);
+    const second = placeNode('prompt', [first]);
+
+    expect(placeNode('prompt', [second])).toEqual(first);
+    expect(placeNode('prompt', [first, second]).y).toBeGreaterThan(second.y);
+  });
+});
+
+describe('nodeKindList', () => {
+  it('перечисляет все описанные типы нод', () => {
+    expect([...nodeKindList].sort()).toEqual(Object.keys(nodeKinds).sort());
   });
 });
