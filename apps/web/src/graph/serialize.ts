@@ -1,26 +1,29 @@
 import type { Edge, Node } from '@xyflow/react';
-import type { GraphData, GraphEdge, GraphNode, NodeKind, Viewport } from '@/api/types';
+import type { GraphData, GraphEdge, GraphNode, Viewport } from '@/api/types';
 
-export type FlowNode = Node<GraphNode['data'], NodeKind>;
+export type PromptFlowNode = Node<{ text: string }, 'prompt'>;
+export type GeneratorFlowNode = Node<{ label: string }, 'generator'>;
+export type ResultFlowNode = Node<{ label: string }, 'result'>;
+export type FlowNode = PromptFlowNode | GeneratorFlowNode | ResultFlowNode;
 export type FlowEdge = Edge;
 export type FlowGraph = { nodes: FlowNode[]; edges: FlowEdge[]; viewport: Viewport };
 
-export const toFlowNode = (node: GraphNode): FlowNode => ({
-  id: node.id,
-  type: node.type,
-  position: { ...node.position },
-  data: { ...node.data },
-});
-
-const toGraphNode = (node: FlowNode): GraphNode | null => {
-  const position = { x: Math.round(node.position.x), y: Math.round(node.position.y) };
-  if (node.type === 'prompt' && 'text' in node.data)
+export const toFlowNode = (node: GraphNode): FlowNode => {
+  const position = { ...node.position };
+  if (node.type === 'prompt')
     return { id: node.id, type: 'prompt', position, data: { text: node.data.text } };
-  if (node.type === 'generator' && 'label' in node.data)
+  if (node.type === 'generator')
     return { id: node.id, type: 'generator', position, data: { label: node.data.label } };
-  if (node.type === 'result' && 'label' in node.data)
-    return { id: node.id, type: 'result', position, data: { label: node.data.label } };
-  return null;
+  return { id: node.id, type: 'result', position, data: { label: node.data.label } };
+};
+
+const toGraphNode = (node: FlowNode): GraphNode => {
+  const position = { x: Math.round(node.position.x), y: Math.round(node.position.y) };
+  if (node.type === 'prompt')
+    return { id: node.id, type: 'prompt', position, data: { text: node.data.text } };
+  if (node.type === 'generator')
+    return { id: node.id, type: 'generator', position, data: { label: node.data.label } };
+  return { id: node.id, type: 'result', position, data: { label: node.data.label } };
 };
 
 export const pruneEdges = <TEdge extends { source: string; target: string }>(
@@ -38,11 +41,7 @@ export const toFlow = (graph: GraphData): FlowGraph => ({
 });
 
 export const toGraph = ({ nodes, edges, viewport }: FlowGraph): GraphData => {
-  const kept: GraphNode[] = [];
-  for (const node of nodes) {
-    const saved = toGraphNode(node);
-    if (saved !== null) kept.push(saved);
-  }
+  const kept: GraphNode[] = nodes.map(toGraphNode);
   const links: GraphEdge[] = pruneEdges(kept, edges).map((edge) => ({
     id: edge.id,
     source: edge.source,

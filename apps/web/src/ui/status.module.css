@@ -1,0 +1,41 @@
+.status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap);
+  padding: 12px 24px;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.status__state {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.status__state[data-status='saving'],
+.status__state[data-status='pending'] {
+  color: var(--text);
+}
+
+.status__state[data-status='error'],
+.status__state[data-status='conflict'] {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.status__notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  margin-left: auto;
+  padding: 8px 12px;
+  border: 1px solid var(--danger);
+  border-radius: var(--radius);
+  color: var(--danger);
+}
+
+.status__action {
+  padding: 6px 12px;
+}

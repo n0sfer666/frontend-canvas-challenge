@@ -1,0 +1,96 @@
+.node {
+  display: grid;
+  gap: 8px;
+  width: 260px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 2px 8px rgb(22 24 29 / 8%);
+}
+
+.node__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.node__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.node__remove {
+  padding: 4px 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.node__hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.node__body {
+  display: grid;
+  gap: 8px;
+}
+
+.node__label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.node__input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  resize: vertical;
+}
+
+.node__submit {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.node__submit:disabled {
+  background: var(--surface-muted);
+  border-color: var(--line);
+  color: var(--text-muted);
+}
+
+.node__state {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.node__state[data-status='succeeded'] {
+  color: var(--success);
+}
+
+.node__state[data-status='failed'],
+.node__state[data-status='error'] {
+  color: var(--danger);
+}
+
+.node__image {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-muted);
+}
+
+.node__port {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--surface);
+  background: var(--accent);
+}

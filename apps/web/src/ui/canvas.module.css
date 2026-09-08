@@ -1,0 +1,28 @@
+.canvas {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+  background: var(--board);
+}
+
+.canvas__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.canvas__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.canvas__board {
+  position: relative;
+  min-height: 0;
+}
