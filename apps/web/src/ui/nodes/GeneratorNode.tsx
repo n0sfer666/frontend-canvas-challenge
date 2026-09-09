@@ -31,17 +31,19 @@ export const GeneratorNode = ({ id }: NodeProps<GeneratorFlowNode>) => {
       <label className={styles.node__label} htmlFor={`scenario-${id}`}>
         Сценарий запуска
       </label>
-      <select
-        id={`scenario-${id}`}
-        className={cx(styles.node__input, noDrag)}
-        value={scenario}
-        onChange={(event) => {
-          setScenario(event.target.value === 'failure' ? 'failure' : 'success');
-        }}
-      >
-        <option value="success">Успешная генерация</option>
-        <option value="failure">Тестовый отказ</option>
-      </select>
+      <span className={styles.node__select}>
+        <select
+          id={`scenario-${id}`}
+          className={cx(styles.node__input, noDrag)}
+          value={scenario}
+          onChange={(event) => {
+            setScenario(event.target.value === 'failure' ? 'failure' : 'success');
+          }}
+        >
+          <option value="success">Успешная генерация</option>
+          <option value="failure">Тестовый отказ</option>
+        </select>
+      </span>
       <button
         type="button"
         className={cx(styles.node__submit, noDrag)}

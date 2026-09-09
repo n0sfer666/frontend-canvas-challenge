@@ -53,6 +53,29 @@
   resize: vertical;
 }
 
+.node__select {
+  position: relative;
+  display: block;
+}
+
+.node__select select {
+  appearance: none;
+  padding-right: 32px;
+}
+
+.node__select::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid var(--text-muted);
+  border-bottom: 1.5px solid var(--text-muted);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+
 .node__submit {
   background: var(--accent);
   border-color: var(--accent);
