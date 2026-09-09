@@ -1,5 +1,7 @@
-import { ApiError } from './errors';
 import type { Http, HttpRequest } from './http';
+import type { GenerationScenario, GraphData, GraphSnapshot } from './types';
+
+import { ApiError } from './errors';
 import { joinUrl } from './http';
 import {
   ConfigSchema,
@@ -9,7 +11,6 @@ import {
   SpaceListSchema,
   SpaceSchema,
 } from './schemas';
-import type { GenerationScenario, GraphData, GraphSnapshot } from './types';
 
 const paths = {
   config: '/api/config',
@@ -17,13 +18,12 @@ const paths = {
   space: (spaceId: string) => `/api/spaces/${spaceId}`,
   graph: (spaceId: string) => `/api/spaces/${spaceId}/graph`,
   generations: (spaceId: string) => `/api/spaces/${spaceId}/generations`,
-  generation: (spaceId: string, generationId: string) =>
-    `/api/spaces/${spaceId}/generations/${generationId}`,
+  generation: (spaceId: string, generationId: string) => `/api/spaces/${spaceId}/generations/${generationId}`,
 };
 
 const required = <T>(value: T | null | undefined): T => {
-  if (value === null || value === undefined)
-    throw new ApiError({ status: 0, code: 'EMPTY_RESPONSE' });
+  if (value === null || value === undefined) throw new ApiError({ status: 0, code: 'EMPTY_RESPONSE' });
+
   return value;
 };
 
@@ -40,6 +40,7 @@ export type SaveGraphInput = { spaceId: string; graph: GraphData; etag: string }
 export const createApi = (http: Http, baseUrl = '') => {
   const snapshot = async (request: HttpRequest<GraphData>): Promise<GraphSnapshot> => {
     const response = await http(request);
+
     return { graph: required(response.data), etag: required(response.etag) };
   };
 
@@ -47,14 +48,10 @@ export const createApi = (http: Http, baseUrl = '') => {
     assetUrl: (path: string) => joinUrl(baseUrl, path),
 
     getConfig: async (signal?: AbortSignal) =>
-      required(
-        (await http({ method: 'GET', path: paths.config, schema: ConfigSchema, signal })).data,
-      ),
+      required((await http({ method: 'GET', path: paths.config, schema: ConfigSchema, signal })).data),
 
     listSpaces: async (signal?: AbortSignal) =>
-      required(
-        (await http({ method: 'GET', path: paths.spaces, schema: SpaceListSchema, signal })).data,
-      ),
+      required((await http({ method: 'GET', path: paths.spaces, schema: SpaceListSchema, signal })).data),
 
     createSpace: async (title: string, signal?: AbortSignal) =>
       required(
@@ -70,9 +67,7 @@ export const createApi = (http: Http, baseUrl = '') => {
       ),
 
     getSpace: async (spaceId: string, signal?: AbortSignal) =>
-      required(
-        (await http({ method: 'GET', path: paths.space(spaceId), schema: SpaceSchema, signal })).data,
-      ),
+      required((await http({ method: 'GET', path: paths.space(spaceId), schema: SpaceSchema, signal })).data),
 
     getGraph: (spaceId: string, signal?: AbortSignal) =>
       snapshot({ method: 'GET', path: paths.graph(spaceId), schema: GraphSchema, signal }),

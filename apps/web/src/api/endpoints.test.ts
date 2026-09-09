@@ -1,8 +1,11 @@
+import type { Http, HttpRequest } from './http';
+
 import { Value } from '@sinclair/typebox/value';
 import { describe, expect, it } from 'vitest';
+
 import { configFixture, generationFixture, graphFixture, ids, spaceFixture } from '@/test/fixtures';
+
 import { createApi } from './endpoints';
-import type { Http, HttpRequest } from './http';
 
 type Result = { status?: number; data?: unknown; etag?: string };
 
@@ -12,6 +15,7 @@ const setup = (result: Result = {}) => {
   const http: Http = (request) => {
     calls.push(request);
     const { schema } = request;
+
     return Promise.resolve({
       status: result.status ?? 200,
       data: schema !== undefined && Value.Check(schema, payload) ? payload : null,
@@ -19,6 +23,7 @@ const setup = (result: Result = {}) => {
       headers: new Headers(),
     });
   };
+
   return { api: createApi(http, 'http://api.test'), calls };
 };
 

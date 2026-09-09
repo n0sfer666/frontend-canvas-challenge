@@ -1,6 +1,8 @@
+import type { SyncStatus } from '@/graph/sync';
+
 import { errorText } from '@/api/errors';
 import { useSessionContext } from '@/app/session-context';
-import type { SyncStatus } from '@/graph/sync';
+
 import styles from './status.module.css';
 
 const saveText: Record<SyncStatus, string> = {
@@ -23,8 +25,8 @@ export const StatusBar = () => {
       </p>
       {save.status === 'error' && (
         <button
-          type="button"
           className={styles.status__action}
+          type="button"
           onClick={() => {
             void retrySave();
           }}
@@ -34,8 +36,8 @@ export const StatusBar = () => {
       )}
       {save.status === 'conflict' && (
         <button
-          type="button"
           className={styles.status__action}
+          type="button"
           onClick={() => {
             void reload();
           }}
@@ -46,7 +48,7 @@ export const StatusBar = () => {
       {notice !== null && (
         <p className={styles.status__notice} role="alert">
           {notice}
-          <button type="button" className={styles.status__action} onClick={dismissNotice}>
+          <button className={styles.status__action} type="button" onClick={dismissNotice}>
             Понятно
           </button>
         </p>

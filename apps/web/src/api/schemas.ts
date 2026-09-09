@@ -1,5 +1,7 @@
-import { Config, Generation, Graph, Space } from '@canvas/contracts';
 import { Type } from '@sinclair/typebox';
+
+import { Config, Generation, Graph, Space } from '@canvas/contracts';
+
 import { registerFormats } from './formats';
 
 registerFormats();

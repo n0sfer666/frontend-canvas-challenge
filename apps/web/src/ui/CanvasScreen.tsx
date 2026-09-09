@@ -1,8 +1,11 @@
-import { ReactFlowProvider } from '@xyflow/react';
 import type { ApiConfig, GenerationData, GraphSnapshot, SpaceData } from '@/api/types';
+
+import { ReactFlowProvider } from '@xyflow/react';
+
 import { useApi } from '@/app/api-context';
 import { SessionContext } from '@/app/session-context';
 import { useSession } from '@/app/useSession';
+
 import { Board } from './Board';
 import styles from './canvas.module.css';
 import { StatusBar } from './StatusBar';

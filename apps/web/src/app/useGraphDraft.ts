@@ -1,20 +1,19 @@
-import { applyEdgeChanges, applyNodeChanges } from '@xyflow/react';
-import type { EdgeChange, NodeChange } from '@xyflow/react';
-import { useCallback, useRef, useState } from 'react';
 import type { GraphData, NodeKind, Viewport } from '@/api/types';
 import type { Connection } from '@/graph/rules';
-import { canConnect, createNode, placeNode } from '@/graph/rules';
 import type { FlowEdge, FlowGraph, FlowNode } from '@/graph/serialize';
+import type { EdgeChange, NodeChange } from '@xyflow/react';
+
+import { applyEdgeChanges, applyNodeChanges } from '@xyflow/react';
+import { useCallback, useRef, useState } from 'react';
+
+import { canConnect, createNode, placeNode } from '@/graph/rules';
 import { pruneEdges, toFlow, toFlowNode, toGraph } from '@/graph/serialize';
+
 import { newId } from './ids';
 
 export type GraphLimits = { maxNodes: number; maxEdges: number };
 
-export const useGraphDraft = (
-  initial: GraphData,
-  limits: GraphLimits,
-  onChange: (graph: GraphData) => void,
-) => {
+export const useGraphDraft = (initial: GraphData, limits: GraphLimits, onChange: (graph: GraphData) => void) => {
   const [flow, setFlow] = useState<FlowGraph>(() => toFlow(initial));
   const [notice, setNotice] = useState<string | null>(null);
   const [revision, setRevision] = useState(0);
@@ -24,6 +23,7 @@ export const useGraphDraft = (
     (update: (draft: FlowGraph) => FlowGraph) => {
       const next = update(current.current);
       const pruned = { ...next, edges: pruneEdges(next.nodes, next.edges) };
+
       current.current = pruned;
       setFlow(pruned);
       onChange(toGraph(pruned));
@@ -33,6 +33,7 @@ export const useGraphDraft = (
 
   const replace = useCallback((graph: GraphData) => {
     const next = toFlow(graph);
+
     current.current = next;
     setFlow(next);
     setNotice(null);
@@ -43,12 +44,14 @@ export const useGraphDraft = (
     (kind: NodeKind) => {
       if (current.current.nodes.length >= limits.maxNodes) {
         setNotice(`Больше ${String(limits.maxNodes)} нод сервер не примет. Удалите лишние ноды.`);
+
         return;
       }
       setNotice(null);
       edit((draft) => {
         const taken = draft.nodes.map((node) => node.position);
         const created = createNode(kind, placeNode(kind, taken), newId());
+
         return { ...draft, nodes: [...draft.nodes, toFlowNode(created)] };
       });
     },
@@ -58,14 +61,15 @@ export const useGraphDraft = (
   const connect = useCallback(
     ({ source, target }: Connection) => {
       if (current.current.edges.length >= limits.maxEdges) {
-        setNotice(
-          `Больше ${String(limits.maxEdges)} связей сервер не примет. Удалите лишние связи.`,
-        );
+        setNotice(`Больше ${String(limits.maxEdges)} связей сервер не примет. Удалите лишние связи.`);
+
         return;
       }
       const verdict = canConnect(toGraph(current.current), { source, target });
+
       if (!verdict.ok) {
         setNotice(verdict.reason);
+
         return;
       }
       setNotice(null);

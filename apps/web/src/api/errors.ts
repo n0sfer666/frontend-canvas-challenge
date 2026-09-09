@@ -73,13 +73,9 @@ export class ApiError extends Error {
   readonly requestId: string | null;
   readonly isNetwork: boolean;
 
-  constructor(init: {
-    status: number;
-    code: string;
-    serverMessage?: string;
-    requestId?: string | null;
-  }) {
+  constructor(init: { status: number; code: string; serverMessage?: string; requestId?: string | null }) {
     const hint = hintFor(init.code, init.serverMessage);
+
     super(hint.message);
     this.name = 'ApiError';
     this.status = init.status;
@@ -93,6 +89,4 @@ export class ApiError extends Error {
 export const isApiError = (value: unknown): value is ApiError => value instanceof ApiError;
 
 export const errorText = (value: unknown): string =>
-  isApiError(value)
-    ? [value.message, value.action].filter(Boolean).join(' ')
-    : 'Непредвиденная ошибка.';
+  isApiError(value) ? [value.message, value.action].filter(Boolean).join(' ') : 'Непредвиденная ошибка.';

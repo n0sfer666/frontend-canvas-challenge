@@ -1,11 +1,11 @@
 .status {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
   gap: var(--gap);
+  align-items: center;
   padding: 12px 24px;
-  border-top: 1px solid var(--line);
   background: var(--surface);
+  border-top: 1px solid var(--line);
 }
 
 .status__state {
@@ -20,20 +20,20 @@
 
 .status__state[data-status='error'],
 .status__state[data-status='conflict'] {
-  color: var(--danger);
   font-weight: 600;
+  color: var(--danger);
 }
 
 .status__notice {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
   margin: 0;
   margin-left: auto;
-  padding: 8px 12px;
+  color: var(--danger);
   border: 1px solid var(--danger);
   border-radius: var(--radius);
-  color: var(--danger);
 }
 
 .status__action {

@@ -1,13 +1,17 @@
-import type { NodeProps } from '@xyflow/react';
-import { useState } from 'react';
 import type { GenerationScenario } from '@/api/types';
-import { useSessionContext } from '@/app/session-context';
-import type { GeneratorFlowNode } from '@/graph/serialize';
 import type { RunStatus } from '@/graph/generation';
+import type { GeneratorFlowNode } from '@/graph/serialize';
+import type { NodeProps } from '@xyflow/react';
+
+import { useState } from 'react';
+
+import { useSessionContext } from '@/app/session-context';
+
 import { cx } from '../cx';
+
 import { noDrag } from './flowClasses';
-import { NodeFrame } from './NodeFrame';
 import styles from './node.module.css';
+import { NodeFrame } from './NodeFrame';
 
 const runText: Record<RunStatus, string> = {
   saving: 'Сохраняем граф перед запуском…',
@@ -33,8 +37,8 @@ export const GeneratorNode = ({ id }: NodeProps<GeneratorFlowNode>) => {
       </label>
       <span className={styles.node__select}>
         <select
-          id={`scenario-${id}`}
           className={cx(styles.node__input, noDrag)}
+          id={`scenario-${id}`}
           value={scenario}
           onChange={(event) => {
             setScenario(event.target.value === 'failure' ? 'failure' : 'success');
@@ -45,9 +49,9 @@ export const GeneratorNode = ({ id }: NodeProps<GeneratorFlowNode>) => {
         </select>
       </span>
       <button
-        type="button"
         className={cx(styles.node__submit, noDrag)}
         disabled={busy}
+        type="button"
         onClick={() => {
           void generate(id, scenario);
         }}

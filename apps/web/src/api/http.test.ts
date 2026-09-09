@@ -1,5 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import { describe, expect, it, vi } from 'vitest';
+
 import { ApiError, isApiError } from './errors';
 import { createHttp } from './http';
 
@@ -14,21 +15,22 @@ const ok = (body: unknown, init?: ResponseInit) =>
 
 const setup = (reply: () => Promise<Response>) => {
   const fetchMock = vi.fn<typeof fetch>(reply);
+
   return { fetchMock, http: createHttp({ baseUrl: 'http://api.test', fetch: fetchMock }) };
 };
 
 const failure = async (promise: Promise<unknown>) => {
   const value: unknown = await promise.catch((error: unknown) => error);
+
   if (!isApiError(value)) throw new Error('Ожидалась ошибка ApiError');
+
   return value;
 };
 
 describe('createHttp', () => {
   it('собирает адрес из базового и пути, читает тело и заголовки ответа', async () => {
     const { http, fetchMock } = setup(() =>
-      Promise.resolve(
-        ok({ nodes: [] }, { headers: { 'content-type': 'application/json', etag: '"a1"' } }),
-      ),
+      Promise.resolve(ok({ nodes: [] }, { headers: { 'content-type': 'application/json', etag: '"a1"' } })),
     );
 
     const response = await http({ method: 'GET', path: '/api/graph', schema: Body });
@@ -51,6 +53,7 @@ describe('createHttp', () => {
 
     const init = fetchMock.mock.calls[0]?.[1];
     const headers = new Headers(init?.headers);
+
     expect(init?.method).toBe('POST');
     expect(init?.body).toBe('{"title":"Канвас"}');
     expect(headers.get('content-type')).toBe('application/json');
@@ -116,6 +119,7 @@ describe('createHttp', () => {
   it('пробрасывает отмену запроса без обёртки', async () => {
     const controller = new AbortController();
     const { http } = setup(() => Promise.reject(new DOMException('Aborted', 'AbortError')));
+
     controller.abort();
 
     const error: unknown = await http({

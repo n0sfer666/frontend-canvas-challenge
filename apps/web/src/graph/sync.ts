@@ -1,12 +1,12 @@
-import { isApiError } from '@/api/errors';
 import type { GraphData, GraphSnapshot } from '@/api/types';
+
+import { isApiError } from '@/api/errors';
+
 import { sameGraph } from './serialize';
 
 export type SyncStatus = 'saved' | 'pending' | 'saving' | 'error' | 'conflict';
 
-export type SyncState =
-  | { status: 'saved' | 'pending' | 'saving' }
-  | { status: 'error' | 'conflict'; error: unknown };
+export type SyncState = { status: 'saved' | 'pending' | 'saving' } | { status: 'error' | 'conflict'; error: unknown };
 
 export type FlushResult = { graph: GraphData | null; etag: string };
 
@@ -18,8 +18,7 @@ type Options = {
   onState?: (state: SyncState) => void;
 };
 
-const isConflict = (error: unknown) =>
-  isApiError(error) && (error.status === 412 || error.status === 428);
+const isConflict = (error: unknown) => isApiError(error) && (error.status === 412 || error.status === 428);
 
 export const createGraphSync = ({ etag, graph, debounceMs, save, onState }: Options) => {
   let version = etag;
@@ -47,6 +46,7 @@ export const createGraphSync = ({ etag, graph, debounceMs, save, onState }: Opti
     if (disposed || draft === null) return Promise.resolve();
 
     const sending = draft;
+
     draft = null;
     stopTimer();
     publish({ status: 'saving' });
@@ -58,6 +58,7 @@ export const createGraphSync = ({ etag, graph, debounceMs, save, onState }: Opti
         saved = snapshot.graph;
         if (draft !== null) return pump();
         publish({ status: 'saved' });
+
         return undefined;
       })
       .catch((error: unknown) => {
@@ -83,6 +84,7 @@ export const createGraphSync = ({ etag, graph, debounceMs, save, onState }: Opti
       if (failed()) break;
     }
     if (state.status === 'error' || state.status === 'conflict') throw state.error;
+
     return { graph: saved, etag: version };
   };
 

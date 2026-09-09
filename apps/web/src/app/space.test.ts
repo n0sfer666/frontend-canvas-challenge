@@ -1,7 +1,10 @@
-import { describe, expect, it, vi } from 'vitest';
-import type { Mock } from 'vitest';
-import { ApiError } from '@/api/errors';
 import type { SpaceData } from '@/api/types';
+import type { Mock } from 'vitest';
+
+import { describe, expect, it, vi } from 'vitest';
+
+import { ApiError } from '@/api/errors';
+
 import { memoryStore, resolveSpace } from './space';
 
 type GetMock = Mock<(spaceId: string) => Promise<SpaceData>>;
@@ -42,9 +45,7 @@ describe('resolveSpace', () => {
 
   it('создаёт новое пространство, если сохранённое исчезло', async () => {
     const store = memoryStore('gone');
-    const getSpace: GetMock = vi.fn(() =>
-      Promise.reject(new ApiError({ status: 404, code: 'SPACE_NOT_FOUND' })),
-    );
+    const getSpace: GetMock = vi.fn(() => Promise.reject(new ApiError({ status: 404, code: 'SPACE_NOT_FOUND' })));
     const createSpace: CreateMock = vi.fn(() => Promise.resolve(space('fresh')));
 
     const opened = await resolveSpace(api(getSpace, createSpace), store);
@@ -55,9 +56,7 @@ describe('resolveSpace', () => {
 
   it('пробрасывает ошибки, кроме отсутствующего пространства', async () => {
     const store = memoryStore('saved');
-    const getSpace: GetMock = vi.fn(() =>
-      Promise.reject(new ApiError({ status: 0, code: 'NETWORK_ERROR' })),
-    );
+    const getSpace: GetMock = vi.fn(() => Promise.reject(new ApiError({ status: 0, code: 'NETWORK_ERROR' })));
     const createSpace: CreateMock = vi.fn();
 
     await expect(resolveSpace(api(getSpace, createSpace), store)).rejects.toBeInstanceOf(ApiError);
@@ -69,6 +68,7 @@ describe('resolveSpace', () => {
 describe('memoryStore', () => {
   it('переживает запись и очистку', () => {
     const store = memoryStore();
+
     store.write('id');
     expect(store.read()).toBe('id');
     store.clear();

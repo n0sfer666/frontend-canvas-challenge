@@ -1,9 +1,11 @@
-import { vi } from 'vitest';
-import type { Mock } from 'vitest';
 import type { StartGenerationInput } from '@/api/endpoints';
 import type { GenerationData } from '@/api/types';
-import { createGenerations } from '@/graph/generation';
 import type { FlushResult } from '@/graph/sync';
+import type { Mock } from 'vitest';
+
+import { vi } from 'vitest';
+
+import { createGenerations } from '@/graph/generation';
 
 export type StartMock = Mock<(input: StartGenerationInput) => Promise<GenerationData>>;
 export type ReadMock = Mock<(spaceId: string, generationId: string) => Promise<GenerationData>>;
@@ -35,8 +37,7 @@ type Options = {
 export const setupGenerations = (options: Options = {}) => {
   const start: StartMock = options.start ?? vi.fn(() => Promise.resolve(generationOf()));
   const read: ReadMock = options.read ?? vi.fn(() => Promise.resolve(generationOf()));
-  const flush: FlushMock =
-    options.flush ?? vi.fn(() => Promise.resolve({ etag: '"v1"', graph: null }));
+  const flush: FlushMock = options.flush ?? vi.fn(() => Promise.resolve({ etag: '"v1"', graph: null }));
   let counter = 0;
   const runs = createGenerations({
     spaceId: 'space-1',
@@ -47,5 +48,6 @@ export const setupGenerations = (options: Options = {}) => {
     api: { startGeneration: start, getGeneration: read },
     onChange: () => undefined,
   });
+
   return { runs, start, read, flush };
 };

@@ -1,6 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ApiError } from '@/api/errors';
 import type { GraphData, GraphSnapshot } from '@/api/types';
+
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { ApiError } from '@/api/errors';
+
 import { createGraphSync } from './sync';
 
 const graph = (zoom: number): GraphData => ({
@@ -16,6 +19,7 @@ const deferred = <T>() => {
     resolve = res;
     reject = rej;
   });
+
   return { promise, resolve, reject };
 };
 
@@ -27,11 +31,11 @@ const setup = (save: (input: { graph: GraphData; etag: string }) => Promise<Grap
     save,
     onState: (state) => states.push(state.status),
   });
+
   return { sync, states };
 };
 
-const savedAs = (etag: string) => (input: { graph: GraphData }) =>
-  Promise.resolve({ graph: input.graph, etag });
+const savedAs = (etag: string) => (input: { graph: GraphData }) => Promise.resolve({ graph: input.graph, etag });
 
 describe('createGraphSync', () => {
   beforeEach(() => {
@@ -152,6 +156,7 @@ describe('createGraphSync', () => {
     await vi.advanceTimersByTimeAsync(500);
     sync.schedule(graph(2));
     const pending = sync.flush();
+
     first.resolve({ graph: graph(1), etag: '"v1"' });
 
     await expect(pending).resolves.toMatchObject({ etag: '"v2"' });

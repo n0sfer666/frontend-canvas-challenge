@@ -1,8 +1,11 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
+
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
+
 import { createApi } from '@/api/endpoints';
 import { createHttp } from '@/api/http';
+
 import { ApiContext } from './api-context';
 
 const configured: unknown = import.meta.env.VITE_API_URL;

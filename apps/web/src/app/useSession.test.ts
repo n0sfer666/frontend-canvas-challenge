@@ -1,10 +1,12 @@
-import { act } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ApiError } from '@/api/errors';
 import type { GraphSnapshot } from '@/api/types';
-import { setupSession as setup, settle } from '@/test/session';
 import type { SaveMock } from '@/test/session';
 import type { Mock } from 'vitest';
+
+import { act } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { ApiError } from '@/api/errors';
+import { setupSession as setup, settle } from '@/test/session';
 
 describe('useSession: граф', () => {
   beforeEach(() => {
@@ -40,6 +42,7 @@ describe('useSession: граф', () => {
       view.result.current.addNode('result');
     });
     const [prompt, result] = view.result.current.nodes;
+
     act(() => {
       view.result.current.connect({ source: prompt?.id ?? '', target: result?.id ?? '' });
     });
@@ -56,6 +59,7 @@ describe('useSession: граф', () => {
       view.result.current.addNode('generator');
     });
     const [prompt, generator] = view.result.current.nodes;
+
     act(() => {
       view.result.current.connect({ source: prompt?.id ?? '', target: generator?.id ?? '' });
     });

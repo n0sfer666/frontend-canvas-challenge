@@ -1,5 +1,4 @@
-import type { Config } from '@canvas/contracts';
-import type { GenerationData, GraphData, NodeData, SpaceData } from '@canvas/contracts';
+import type { Config, GenerationData, GraphData, NodeData, SpaceData } from '@canvas/contracts';
 import type { Static } from '@sinclair/typebox';
 
 export type { GenerationData, GraphData, NodeData, SpaceData };

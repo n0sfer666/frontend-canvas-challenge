@@ -1,12 +1,15 @@
-import { act, renderHook } from '@testing-library/react';
-import { StrictMode, createElement } from 'react';
-import type { ReactNode } from 'react';
-import { vi } from 'vitest';
-import type { Mock } from 'vitest';
 import type { SaveGraphInput, StartGenerationInput } from '@/api/endpoints';
 import type { GenerationData, GraphData, GraphSnapshot } from '@/api/types';
-import { generationOf } from './generations';
+import type { ReactNode } from 'react';
+import type { Mock } from 'vitest';
+
+import { act, renderHook } from '@testing-library/react';
+import { StrictMode, createElement } from 'react';
+import { vi } from 'vitest';
+
 import { useSession } from '@/app/useSession';
+
+import { generationOf } from './generations';
 
 export type SaveMock = Mock<(input: SaveGraphInput) => Promise<GraphSnapshot>>;
 export type StartMock = Mock<(input: StartGenerationInput) => Promise<GenerationData>>;
@@ -28,14 +31,12 @@ type Options = {
   getGraph?: Mock<() => Promise<GraphSnapshot>>;
 };
 
-const strictWrapper = ({ children }: { children: ReactNode }) =>
-  createElement(StrictMode, null, children);
+const strictWrapper = ({ children }: { children: ReactNode }) => createElement(StrictMode, null, children);
 
 export const setupSession = (options: Options = {}) => {
   const saveGraph: SaveMock =
     options.saveGraph ?? vi.fn((input) => Promise.resolve({ graph: input.graph, etag: '"v2"' }));
-  const startGeneration: StartMock =
-    options.startGeneration ?? vi.fn(() => Promise.resolve(done()));
+  const startGeneration: StartMock = options.startGeneration ?? vi.fn(() => Promise.resolve(done()));
   const getGraph =
     options.getGraph ??
     vi.fn(() =>
@@ -61,6 +62,7 @@ export const setupSession = (options: Options = {}) => {
       }),
     options.strict === true ? { wrapper: strictWrapper } : undefined,
   );
+
   return { view, saveGraph, startGeneration, getGraph };
 };
 

@@ -1,8 +1,11 @@
-import type { ReactNode } from 'react';
 import type { NodeKind } from '@/api/types';
+import type { ReactNode } from 'react';
+
 import { useSessionContext } from '@/app/session-context';
 import { hasInput, hasOutput, nodeKinds } from '@/graph/rules';
+
 import { cx } from '../cx';
+
 import { noDrag } from './flowClasses';
 import styles from './node.module.css';
 import { NodePort } from './NodePort';
@@ -18,7 +21,7 @@ export const NodeFrame = ({ kind, nodeId, children }: NodeFrameProps) => {
   const spec = nodeKinds[kind];
 
   return (
-    <section className={styles.node} aria-label={`Нода «${spec.title}»`}>
+    <section aria-label={`Нода «${spec.title}»`} className={styles.node}>
       {hasInput(kind) && (
         <NodePort
           direction="target"
@@ -31,12 +34,12 @@ export const NodeFrame = ({ kind, nodeId, children }: NodeFrameProps) => {
       <header className={styles.node__header}>
         <h2 className={styles.node__title}>{spec.title}</h2>
         <button
-          type="button"
+          aria-label={`Удалить ноду «${spec.title}»`}
           className={cx(styles.node__remove, noDrag)}
+          type="button"
           onClick={() => {
             removeNode(nodeId);
           }}
-          aria-label={`Удалить ноду «${spec.title}»`}
         >
           Удалить
         </button>

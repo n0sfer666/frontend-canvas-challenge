@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url';
+
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
 
@@ -9,9 +10,7 @@ export default defineConfig({
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   server: {
     port: 5173,
-    proxy: Object.fromEntries(
-      ['/api', '/assets', '/openapi.json'].map((path) => [path, { target: apiUrl }]),
-    ),
+    proxy: Object.fromEntries(['/api', '/assets', '/openapi.json'].map((path) => [path, { target: apiUrl }])),
   },
   test: {
     globals: true,

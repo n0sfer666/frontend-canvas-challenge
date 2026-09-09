@@ -11,7 +11,7 @@ export const Splash = ({ title, message, action }: SplashProps) => (
     <h1 className={styles.splash__title}>{title}</h1>
     <p className={styles.splash__message}>{message}</p>
     {action !== undefined && (
-      <button type="button" className={styles.splash__action} onClick={action.onClick}>
+      <button className={styles.splash__action} type="button" onClick={action.onClick}>
         {action.label}
       </button>
     )}

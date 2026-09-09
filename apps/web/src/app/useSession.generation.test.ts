@@ -1,5 +1,6 @@
 import { act } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { setupSession as setup, settle } from '@/test/session';
 
 describe('useSession: генерация', () => {
@@ -19,6 +20,7 @@ describe('useSession: генерация', () => {
       view.result.current.addNode('result');
     });
     const [prompt, generator, result] = view.result.current.nodes;
+
     act(() => {
       view.result.current.connect({ source: prompt?.id ?? '', target: generator?.id ?? '' });
       view.result.current.connect({ source: generator?.id ?? '', target: result?.id ?? '' });

@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
+
 import { errorText } from '@/api/errors';
 import { CanvasScreen } from '@/ui/CanvasScreen';
 import { Splash } from '@/ui/Splash';
+
 import { useApi } from './api-context';
 import { browserStore, resolveSpace } from './space';
 
@@ -27,30 +29,31 @@ export const App = () => {
 
   const required = [config, space, graph];
   const failed = required.find((query) => query.error !== null);
+
   if (failed !== undefined)
     return (
       <Splash
-        title="Не удалось открыть пространство"
-        message={errorText(failed.error)}
         action={{
           label: 'Повторить',
           onClick: () => {
             void failed.refetch();
           },
         }}
+        message={errorText(failed.error)}
+        title="Не удалось открыть пространство"
       />
     );
 
   if (!config.data || !space.data || !graph.data || history.isPending)
-    return <Splash title="Открываем рабочее пространство" message="Загружаем граф и историю…" />;
+    return <Splash message="Загружаем граф и историю…" title="Открываем рабочее пространство" />;
 
   return (
     <CanvasScreen
       key={space.data.id}
-      space={space.data}
-      snapshot={graph.data}
       config={config.data}
       history={history.data ?? []}
+      snapshot={graph.data}
+      space={space.data}
     />
   );
 };

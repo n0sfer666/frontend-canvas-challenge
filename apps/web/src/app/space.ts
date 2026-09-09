@@ -1,5 +1,6 @@
-import { isApiError } from '@/api/errors';
 import type { SpaceData } from '@/api/types';
+
+import { isApiError } from '@/api/errors';
 
 export type SpaceStore = {
   read: () => string | null;
@@ -18,6 +19,7 @@ export const defaultSpaceTitle = 'Рабочее пространство';
 
 export const memoryStore = (initial: string | null = null): SpaceStore => {
   let value = initial;
+
   return {
     read: () => value,
     write: (spaceId: string) => {
@@ -55,12 +57,9 @@ export const browserStore = (storage: Storage): SpaceStore => ({
 
 const missing = (error: unknown) => isApiError(error) && error.status === 404;
 
-export const resolveSpace = async (
-  api: SpaceApi,
-  store: SpaceStore,
-  title = defaultSpaceTitle,
-): Promise<SpaceData> => {
+export const resolveSpace = async (api: SpaceApi, store: SpaceStore, title = defaultSpaceTitle): Promise<SpaceData> => {
   const saved = store.read();
+
   if (saved !== null) {
     try {
       return await api.getSpace(saved);
@@ -70,6 +69,8 @@ export const resolveSpace = async (
     }
   }
   const created = await api.createSpace(title);
+
   store.write(created.id);
+
   return created;
 };

@@ -3,17 +3,17 @@
   gap: 8px;
   width: 260px;
   padding: 12px;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: var(--surface);
   box-shadow: 0 2px 8px rgb(22 24 29 / 8%);
 }
 
 .node__header {
   display: flex;
+  gap: 8px;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
 }
 
 .node__title {
@@ -30,8 +30,8 @@
 
 .node__hint {
   margin: 0;
-  color: var(--text-muted);
   font-size: 13px;
+  color: var(--text-muted);
 }
 
 .node__body {
@@ -47,10 +47,10 @@
 .node__input {
   width: 100%;
   padding: 8px;
+  resize: vertical;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: var(--surface);
-  resize: vertical;
 }
 
 .node__select {
@@ -59,33 +59,33 @@
 }
 
 .node__select select {
-  appearance: none;
   padding-right: 32px;
+  appearance: none;
 }
 
 .node__select::after {
-  content: '';
   position: absolute;
   top: 50%;
   right: 14px;
   width: 7px;
   height: 7px;
+  pointer-events: none;
+  content: '';
   border-right: 1.5px solid var(--text-muted);
   border-bottom: 1.5px solid var(--text-muted);
   transform: translateY(-70%) rotate(45deg);
-  pointer-events: none;
 }
 
 .node__submit {
+  color: var(--accent-text);
   background: var(--accent);
   border-color: var(--accent);
-  color: var(--accent-text);
 }
 
 .node__submit:disabled {
+  color: var(--text-muted);
   background: var(--surface-muted);
   border-color: var(--line);
-  color: var(--text-muted);
 }
 
 .node__state {
@@ -106,14 +106,14 @@
 .node__image {
   display: block;
   width: 100%;
+  background: var(--surface-muted);
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: var(--surface-muted);
 }
 
 .node__port {
   width: 12px;
   height: 12px;
-  border: 2px solid var(--surface);
   background: var(--accent);
+  border: 2px solid var(--surface);
 }

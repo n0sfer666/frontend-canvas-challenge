@@ -1,7 +1,10 @@
-import { Background, Controls, ReactFlow, useReactFlow } from '@xyflow/react';
 import type { OnConnect } from '@xyflow/react';
+
+import { Background, Controls, ReactFlow, useReactFlow } from '@xyflow/react';
 import { useCallback, useEffect } from 'react';
+
 import { useSessionContext } from '@/app/session-context';
+
 import styles from './canvas.module.css';
 import { nodeTypes } from './nodes/nodeTypes';
 
@@ -25,21 +28,21 @@ export const Board = () => {
   return (
     <main className={styles.canvas__board}>
       <ReactFlow
-        nodes={session.nodes}
-        edges={session.edges}
-        nodeTypes={nodeTypes}
+        aria-label="Канвас рабочего пространства"
         defaultViewport={viewport}
-        onNodesChange={session.onNodesChange}
-        onEdgesChange={session.onEdgesChange}
+        deleteKeyCode={['Backspace', 'Delete']}
+        edges={session.edges}
+        maxZoom={2}
+        minZoom={0.2}
+        nodeTypes={nodeTypes}
+        nodes={session.nodes}
+        proOptions={{ hideAttribution: true }}
         onConnect={onConnect}
+        onEdgesChange={session.onEdgesChange}
         onMoveEnd={(_event, moved) => {
           onViewportChange(moved);
         }}
-        minZoom={0.2}
-        maxZoom={2}
-        deleteKeyCode={['Backspace', 'Delete']}
-        proOptions={{ hideAttribution: true }}
-        aria-label="Канвас рабочего пространства"
+        onNodesChange={session.onNodesChange}
       >
         <Background />
         <Controls />

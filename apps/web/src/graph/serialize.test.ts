@@ -1,7 +1,9 @@
-import { describe, expect, it } from 'vitest';
-import type { GraphData } from '@/api/types';
-import { createNode, nodeKinds } from './rules';
 import type { FlowNode } from './serialize';
+import type { GraphData } from '@/api/types';
+
+import { describe, expect, it } from 'vitest';
+
+import { createNode, nodeKinds } from './rules';
 import { sameGraph, toFlow, toGraph } from './serialize';
 
 const promptNode = createNode('prompt', { x: 0, y: 0 }, 'p1');

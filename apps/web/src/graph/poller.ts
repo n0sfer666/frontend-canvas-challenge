@@ -6,6 +6,7 @@ export const createPoller = ({ intervalMs }: Options) => {
 
   const stop = (id: string) => {
     const timer = timers.get(id);
+
     if (timer !== undefined) clearTimeout(timer);
     timers.delete(id);
   };

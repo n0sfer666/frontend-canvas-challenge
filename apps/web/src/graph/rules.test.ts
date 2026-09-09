@@ -1,5 +1,7 @@
-import { describe, expect, it } from 'vitest';
 import type { GraphData } from '@/api/types';
+
+import { describe, expect, it } from 'vitest';
+
 import { canConnect, createNode, nodeKindList, nodeKinds, placeNode } from './rules';
 
 const graph = (nodes: GraphData['nodes'], edges: GraphData['edges'] = []): GraphData => ({
@@ -42,10 +44,7 @@ describe('canConnect', () => {
 
   it('оставляет у входа одну связь', () => {
     const other = createNode('prompt', { x: 0, y: 100 }, 'p2');
-    const linked = graph(
-      [prompt, other, generator, result],
-      [{ id: 'e1', source: 'p1', target: 'g1' }],
-    );
+    const linked = graph([prompt, other, generator, result], [{ id: 'e1', source: 'p1', target: 'g1' }]);
 
     const verdict = canConnect(linked, { source: 'p2', target: 'g1' });
 
@@ -79,6 +78,7 @@ describe('canConnect', () => {
 describe('placeNode', () => {
   it('разводит типы нод по колонкам и не наслаивает соседей', () => {
     const first = placeNode('prompt', []);
+
     expect(first.x).toBeLessThan(placeNode('generator', []).x);
     expect(placeNode('generator', []).x).toBeLessThan(placeNode('result', []).x);
     expect(placeNode('prompt', [first]).y).toBeGreaterThan(first.y);

@@ -1,6 +1,8 @@
-import { Type } from '@sinclair/typebox';
 import type { TSchema } from '@sinclair/typebox';
+
+import { Type } from '@sinclair/typebox';
 import { Value } from '@sinclair/typebox/value';
+
 import { ApiError, codeForStatus } from './errors';
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT';
@@ -35,12 +37,11 @@ export const joinUrl = (baseUrl: string, path: string) =>
   `${baseUrl.replace(/\/$/, '')}${path.startsWith('/') ? path : `/${path}`}`;
 
 const withoutBody = (response: Response) =>
-  response.status === 204 ||
-  response.status === 304 ||
-  response.headers.get('content-length') === '0';
+  response.status === 204 || response.status === 304 || response.headers.get('content-length') === '0';
 
 const readBody = async (response: Response): Promise<unknown> => {
   if (withoutBody(response)) return null;
+
   return response
     .clone()
     .json()
@@ -55,6 +56,7 @@ const isAbort = (cause: unknown) => named(cause) && cause.name === 'AbortError';
 const errorFrom = (response: Response, payload: unknown) => {
   const known = Value.Check(ErrorBody, payload);
   const message = known ? payload.error.message : undefined;
+
   return new ApiError({
     status: response.status,
     code: known ? payload.error.code : codeForStatus(response.status),
@@ -65,17 +67,17 @@ const errorFrom = (response: Response, payload: unknown) => {
 
 const mergeHeaders = (parts: (Record<string, string | undefined> | undefined)[]) => {
   const headers = new Headers();
-  for (const part of parts)
-    for (const [key, value] of Object.entries(part ?? {}))
+
+  for (const part of parts) {
+    for (const [key, value] of Object.entries(part ?? {})) {
       if (value !== undefined) headers.set(key, value);
+    }
+  }
+
   return headers;
 };
 
-const parse = <TData>(
-  schema: Schema<TData> | undefined,
-  payload: unknown,
-  status: number,
-): TData | null => {
+const parse = <TData>(schema: Schema<TData> | undefined, payload: unknown, status: number): TData | null => {
   if (payload === null || schema === undefined) return null;
   if (Value.Check(schema, payload)) return payload;
   throw new ApiError({ status, code: 'INVALID_RESPONSE' });
@@ -95,6 +97,7 @@ export const createHttp = ({ baseUrl, fetch: send = fetch, headers }: Options): 
     };
 
     let response: Response;
+
     try {
       response = await send(joinUrl(baseUrl, request.path), init);
     } catch (cause) {
@@ -103,6 +106,7 @@ export const createHttp = ({ baseUrl, fetch: send = fetch, headers }: Options): 
     }
 
     const payload = await readBody(response);
+
     if (!response.ok && response.status !== 304) throw errorFrom(response, payload);
 
     return {

@@ -1,8 +1,9 @@
+import type { StartMock, FlushMock } from '@/test/generations';
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { ApiError } from '@/api/errors';
 import { generationOf as generation, setupGenerations as setup } from '@/test/generations';
-import type { StartMock } from '@/test/generations';
-import type { FlushMock } from '@/test/generations';
 
 describe('createGenerations: запуск', () => {
   beforeEach(() => {
@@ -28,9 +29,7 @@ describe('createGenerations: запуск', () => {
   });
 
   it('не запускает генерацию, если сохранение не удалось', async () => {
-    const flush: FlushMock = vi.fn(() =>
-      Promise.reject(new ApiError({ status: 412, code: 'GRAPH_VERSION_CONFLICT' })),
-    );
+    const flush: FlushMock = vi.fn(() => Promise.reject(new ApiError({ status: 412, code: 'GRAPH_VERSION_CONFLICT' })));
     const { runs, start } = setup({ flush });
 
     await runs.start('g1', 'success');
@@ -41,6 +40,7 @@ describe('createGenerations: запуск', () => {
 
   it('повтор после потери ответа сохраняет прежний ключ, новый запуск получает новый', async () => {
     const start: StartMock = vi.fn();
+
     start
       .mockRejectedValueOnce(new ApiError({ status: 0, code: 'NETWORK_ERROR' }))
       .mockResolvedValue(generation({ status: 'succeeded', imageUrl: '/assets/demo.svg' }));
@@ -58,6 +58,7 @@ describe('createGenerations: запуск', () => {
 
   it('повтор после потери ответа отправляет прежний сценарий, а не выбранный заново', async () => {
     const start: StartMock = vi.fn();
+
     start
       .mockRejectedValueOnce(new ApiError({ status: 0, code: 'NETWORK_ERROR' }))
       .mockResolvedValue(generation({ scenario: 'failure' }));

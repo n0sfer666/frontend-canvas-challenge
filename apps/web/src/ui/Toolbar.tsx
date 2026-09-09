@@ -1,17 +1,18 @@
 import { useSessionContext } from '@/app/session-context';
 import { nodeKindList, nodeKinds } from '@/graph/rules';
+
 import styles from './toolbar.module.css';
 
 export const Toolbar = () => {
   const { addNode } = useSessionContext();
 
   return (
-    <div className={styles.toolbar} role="group" aria-label="Добавление нод">
+    <div aria-label="Добавление нод" className={styles.toolbar} role="group">
       {nodeKindList.map((kind) => (
         <button
           key={kind}
-          type="button"
           className={styles.toolbar__button}
+          type="button"
           onClick={() => {
             addNode(kind);
           }}

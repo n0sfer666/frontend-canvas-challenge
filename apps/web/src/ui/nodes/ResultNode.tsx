@@ -1,9 +1,11 @@
+import type { ResultFlowNode } from '@/graph/serialize';
 import type { NodeProps } from '@xyflow/react';
+
 import { useApi } from '@/app/api-context';
 import { useSessionContext } from '@/app/session-context';
-import type { ResultFlowNode } from '@/graph/serialize';
-import { NodeFrame } from './NodeFrame';
+
 import styles from './node.module.css';
+import { NodeFrame } from './NodeFrame';
 
 export const ResultNode = ({ id }: NodeProps<ResultFlowNode>) => {
   const { resultFor } = useSessionContext();
@@ -12,9 +14,7 @@ export const ResultNode = ({ id }: NodeProps<ResultFlowNode>) => {
 
   return (
     <NodeFrame kind="result" nodeId={id}>
-      {result === null && (
-        <p className={styles.node__state}>Здесь появится изображение после генерации.</p>
-      )}
+      {result === null && <p className={styles.node__state}>Здесь появится изображение после генерации.</p>}
       {result?.status === 'processing' && (
         <p className={styles.node__state} role="status">
           Ждём изображение от сервера…
@@ -26,11 +26,7 @@ export const ResultNode = ({ id }: NodeProps<ResultFlowNode>) => {
         </p>
       )}
       {result?.status === 'succeeded' && result.imageUrl !== null && (
-        <img
-          className={styles.node__image}
-          src={assetUrl(result.imageUrl)}
-          alt="Результат генерации"
-        />
+        <img alt="Результат генерации" className={styles.node__image} src={assetUrl(result.imageUrl)} />
       )}
     </NodeFrame>
   );

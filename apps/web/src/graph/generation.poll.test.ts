@@ -1,7 +1,9 @@
+import type { ReadMock, StartMock } from '@/test/generations';
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { ApiError } from '@/api/errors';
 import { generationOf as generation, setupGenerations as setup } from '@/test/generations';
-import type { ReadMock, StartMock } from '@/test/generations';
 
 describe('createGenerations: опрос и восстановление', () => {
   beforeEach(() => {
@@ -13,6 +15,7 @@ describe('createGenerations: опрос и восстановление', () => 
 
   it('опрашивает статус до успеха и показывает картинку в ноде результата', async () => {
     const read: ReadMock = vi.fn();
+
     read
       .mockResolvedValueOnce(generation())
       .mockResolvedValue(generation({ status: 'succeeded', imageUrl: '/assets/demo.svg' }));
@@ -27,12 +30,14 @@ describe('createGenerations: опрос и восстановление', () => 
 
   it('прекращает опрос после итогового статуса', async () => {
     const read: ReadMock = vi.fn();
+
     read.mockResolvedValue(generation({ status: 'failed', failureCode: 'SIMULATED_FAILURE' }));
     const { runs } = setup({ read });
 
     await runs.start('g1', 'failure');
     await vi.advanceTimersByTimeAsync(3000);
     const calls = read.mock.calls.length;
+
     await vi.advanceTimersByTimeAsync(3000);
 
     expect(read.mock.calls.length).toBe(calls);
@@ -40,9 +45,7 @@ describe('createGenerations: опрос и восстановление', () => 
   });
 
   it('перестаёт опрашивать сервер после серии неудачных ответов', async () => {
-    const read: ReadMock = vi.fn(() =>
-      Promise.reject(new ApiError({ status: 0, code: 'NETWORK_ERROR' })),
-    );
+    const read: ReadMock = vi.fn(() => Promise.reject(new ApiError({ status: 0, code: 'NETWORK_ERROR' })));
     const { runs } = setup({ read, maxPollFailures: 3 });
 
     await runs.start('g1', 'success');
@@ -53,9 +56,7 @@ describe('createGenerations: опрос и восстановление', () => 
   });
 
   it('не опрашивает повторно, если генерация больше не существует', async () => {
-    const read: ReadMock = vi.fn(() =>
-      Promise.reject(new ApiError({ status: 404, code: 'GENERATION_NOT_FOUND' })),
-    );
+    const read: ReadMock = vi.fn(() => Promise.reject(new ApiError({ status: 404, code: 'GENERATION_NOT_FOUND' })));
     const { runs } = setup({ read });
 
     await runs.start('g1', 'success');
@@ -84,18 +85,16 @@ describe('createGenerations: опрос и восстановление', () => 
 
   it('не подставляет результат прежнего запуска поверх более нового', async () => {
     const read: ReadMock = vi.fn();
+
     read.mockResolvedValue(generation());
     const start: StartMock = vi.fn();
-    start
-      .mockResolvedValueOnce(generation({ id: 'gen-old' }))
-      .mockResolvedValueOnce(generation({ id: 'gen-new' }));
+
+    start.mockResolvedValueOnce(generation({ id: 'gen-old' })).mockResolvedValueOnce(generation({ id: 'gen-new' }));
     const { runs } = setup({ start, read });
 
     await runs.start('g1', 'success');
     await runs.start('g1', 'success');
-    read.mockResolvedValue(
-      generation({ id: 'gen-old', status: 'succeeded', imageUrl: '/assets/old.svg' }),
-    );
+    read.mockResolvedValue(generation({ id: 'gen-old', status: 'succeeded', imageUrl: '/assets/old.svg' }));
     await vi.advanceTimersByTimeAsync(1500);
 
     expect(runs.resultFor('r1')?.imageUrl).not.toBe('/assets/old.svg');
@@ -114,9 +113,7 @@ describe('createGenerations: опрос и восстановление', () => 
 
   it('восстанавливает незавершённые генерации из списка сервера', async () => {
     const read: ReadMock = vi.fn((_spaceId, generationId) =>
-      Promise.resolve(
-        generation({ id: generationId, status: 'succeeded', imageUrl: '/assets/demo.svg' }),
-      ),
+      Promise.resolve(generation({ id: generationId, status: 'succeeded', imageUrl: '/assets/demo.svg' })),
     );
     const { runs } = setup({ read });
 

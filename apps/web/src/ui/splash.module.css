@@ -1,11 +1,11 @@
 .splash {
   display: grid;
+  gap: var(--gap);
   align-content: center;
   justify-items: start;
-  gap: var(--gap);
+  max-width: 640px;
   height: 100%;
   padding: 0 24px;
-  max-width: 640px;
   margin: 0 auto;
 }
 

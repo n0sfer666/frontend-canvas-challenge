@@ -1,5 +1,5 @@
-import type { Edge, Node } from '@xyflow/react';
 import type { GraphData, GraphEdge, GraphNode, Viewport } from '@/api/types';
+import type { Edge, Node } from '@xyflow/react';
 
 export type PromptFlowNode = Node<{ text: string }, 'prompt'>;
 export type GeneratorFlowNode = Node<{ label: string }, 'generator'>;
@@ -12,10 +12,10 @@ export const toFlowNode = (node: GraphNode): FlowNode => ({ ...node, position: {
 
 const toGraphNode = (node: FlowNode): GraphNode => {
   const position = { x: Math.round(node.position.x), y: Math.round(node.position.y) };
-  if (node.type === 'prompt')
-    return { id: node.id, type: 'prompt', position, data: { text: node.data.text } };
-  if (node.type === 'generator')
-    return { id: node.id, type: 'generator', position, data: { label: node.data.label } };
+
+  if (node.type === 'prompt') return { id: node.id, type: 'prompt', position, data: { text: node.data.text } };
+  if (node.type === 'generator') return { id: node.id, type: 'generator', position, data: { label: node.data.label } };
+
   return { id: node.id, type: 'result', position, data: { label: node.data.label } };
 };
 
@@ -24,6 +24,7 @@ export const pruneEdges = <TEdge extends { source: string; target: string }>(
   edges: readonly TEdge[],
 ): TEdge[] => {
   const alive = new Set(nodes.map((node) => node.id));
+
   return edges.filter((edge) => alive.has(edge.source) && alive.has(edge.target));
 };
 
@@ -40,6 +41,7 @@ export const toGraph = ({ nodes, edges, viewport }: FlowGraph): GraphData => {
     source: edge.source,
     target: edge.target,
   }));
+
   return { nodes: kept, edges: links, viewport: { ...viewport } };
 };
 

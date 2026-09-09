@@ -37,22 +37,24 @@ export const nodeKinds: Record<NodeKind, NodeKindSpec> = {
 export const nodeKindList: readonly NodeKind[] = ['prompt', 'generator', 'result'];
 
 export const hasInput = (kind: NodeKind) => nodeKinds[kind].accepts.length > 0;
-export const hasOutput = (kind: NodeKind) =>
-  nodeKindList.some((other) => nodeKinds[other].accepts.includes(kind));
+export const hasOutput = (kind: NodeKind) => nodeKindList.some((other) => nodeKinds[other].accepts.includes(kind));
 
 export const placeNode = (kind: NodeKind, taken: readonly Point[]): Point => {
   const x = nodeKinds[kind].column;
   const busy = new Set(taken.filter((point) => point.x === x).map((point) => point.y));
   let y = 40;
+
   while (busy.has(y)) y += 150;
+
   return { x, y };
 };
 
 export const createNode = (kind: NodeKind, position: Point, id: string): GraphNode => {
   const at = { x: Math.round(position.x), y: Math.round(position.y) };
+
   if (kind === 'prompt') return { id, type: 'prompt', position: at, data: { text: '' } };
-  if (kind === 'generator')
-    return { id, type: 'generator', position: at, data: { label: nodeKinds.generator.title } };
+  if (kind === 'generator') return { id, type: 'generator', position: at, data: { label: nodeKinds.generator.title } };
+
   return { id, type: 'result', position: at, data: { label: nodeKinds.result.title } };
 };
 
@@ -66,13 +68,13 @@ export const canConnect = (graph: GraphData, { source, target }: Connection): Ve
 
   const from = graph.nodes.find((node) => node.id === source);
   const to = graph.nodes.find((node) => node.id === target);
+
   if (!from || !to) return deny('Одна из нод больше не существует.');
 
   if (!nodeKinds[to.type].accepts.includes(from.type))
     return deny(
       `${nodeKinds[to.type].title} принимает связь только от ноды «${
-        nodeKinds[to.type].accepts.map((kind) => nodeKinds[kind].title).join('», «') ||
-        'другого типа'
+        nodeKinds[to.type].accepts.map((kind) => nodeKinds[kind].title).join('», «') || 'другого типа'
       }». Соедините текст с генератором, а генератор с результатом.`,
     );
 
@@ -89,6 +91,7 @@ export const chainOf = (graph: GraphData, generatorId: string) => {
   const input = graph.edges.find((edge) => edge.target === generatorId);
   const output = graph.edges.find((edge) => edge.source === generatorId);
   const source = graph.nodes.find((node) => node.id === input?.source);
+
   return {
     prompt: source?.type === 'prompt' ? source : undefined,
     resultNodeId: output?.target,

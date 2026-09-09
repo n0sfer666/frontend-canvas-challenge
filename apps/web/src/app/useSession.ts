@@ -1,11 +1,14 @@
-import { useCallback, useEffect, useReducer, useState } from 'react';
 import type { Api } from '@/api/endpoints';
-import { errorText } from '@/api/errors';
 import type { ApiConfig, GenerationData, GenerationScenario, GraphSnapshot } from '@/api/types';
+import type { SyncState } from '@/graph/sync';
+
+import { useCallback, useEffect, useReducer, useState } from 'react';
+
+import { errorText } from '@/api/errors';
 import { createGenerations } from '@/graph/generation';
 import { chainOf } from '@/graph/rules';
 import { createGraphSync } from '@/graph/sync';
-import type { SyncState } from '@/graph/sync';
+
 import { newId } from './ids';
 import { useGraphDraft } from './useGraphDraft';
 
@@ -19,8 +22,7 @@ type Input = {
   history: readonly GenerationData[];
 };
 
-const incomplete =
-  'Соедините текстовую ноду с генератором, генератор — с результатом и заполните описание.';
+const incomplete = 'Соедините текстовую ноду с генератором, генератор — с результатом и заполните описание.';
 
 const linkHint = 'Выберите вход другой ноды и нажмите Enter, чтобы создать связь.';
 
@@ -48,6 +50,7 @@ export const useSession = ({ api, spaceId, snapshot, config, history }: Input) =
       api,
       onChange: bump,
     });
+
     return { sync: graphSync, runs: generations };
   });
 
@@ -59,6 +62,7 @@ export const useSession = ({ api, spaceId, snapshot, config, history }: Input) =
     sync.resume();
     runs.resume();
     runs.adopt(restored);
+
     return () => {
       sync.dispose();
       runs.dispose();
@@ -69,13 +73,16 @@ export const useSession = ({ api, spaceId, snapshot, config, history }: Input) =
     async (generatorId: string, scenario: GenerationScenario) => {
       const chain = chainOf(draft.graph(), generatorId);
       const text = chain.prompt?.data.text.trim() ?? '';
+
       if (text === '' || chain.resultNodeId === undefined) {
         setNotice(incomplete);
+
         return;
       }
       setNotice(null);
       await runs.start(generatorId, scenario);
       const run = runs.runFor(generatorId);
+
       if (run?.status === 'error') setNotice(errorText(run.error));
     },
     [draft, runs, setNotice],
@@ -84,6 +91,7 @@ export const useSession = ({ api, spaceId, snapshot, config, history }: Input) =
   const reload = useCallback(async () => {
     try {
       const fresh = await api.getGraph(spaceId);
+
       sync.reset(fresh);
       replace(fresh.graph);
     } catch (error) {
@@ -120,6 +128,7 @@ export const useSession = ({ api, spaceId, snapshot, config, history }: Input) =
     (nodeId: string) => {
       if (linking === null) {
         setNotice(sourceFirst);
+
         return;
       }
       connect({ source: linking, target: nodeId });
