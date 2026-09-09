@@ -17,8 +17,7 @@
 }
 
 .canvas__title {
-  margin: 0;
-  font-size: 18px;
+  font-size: var(--font-lg);
   font-weight: 600;
 }
 

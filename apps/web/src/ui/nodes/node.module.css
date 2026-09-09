@@ -17,20 +17,19 @@
 }
 
 .node__title {
-  margin: 0;
-  font-size: 15px;
+  font-size: var(--font-md);
   font-weight: 600;
 }
 
 .node__remove {
   padding: 4px 8px;
-  font-size: 13px;
-  color: var(--text-muted);
 }
 
-.node__hint {
-  margin: 0;
-  font-size: 13px;
+.node__hint,
+.node__label,
+.node__remove,
+.node__state {
+  font-size: var(--font-sm);
   color: var(--text-muted);
 }
 
@@ -39,18 +38,13 @@
   gap: 8px;
 }
 
-.node__label {
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
 .node__input {
   width: 100%;
   padding: 8px;
   resize: vertical;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
 .node__select {
@@ -88,12 +82,6 @@
   border-color: var(--line);
 }
 
-.node__state {
-  margin: 0;
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
 .node__state[data-status='succeeded'] {
   color: var(--success);
 }
@@ -108,7 +96,7 @@
   width: 100%;
   background: var(--surface-muted);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
 .node__port {

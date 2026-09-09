@@ -10,7 +10,12 @@
   --danger: #b3261e;
   --success: #1b7f4b;
   --radius: 10px;
+  --radius-sm: 8px;
   --gap: 12px;
+  --font-sm: 13px;
+  --font-md: 15px;
+  --font-lg: 18px;
+  --font-xl: 20px;
 
   color-scheme: light;
 }
@@ -34,6 +39,13 @@ body {
     sans-serif;
   color: var(--text);
   background: var(--surface-muted);
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
 }
 
 button,

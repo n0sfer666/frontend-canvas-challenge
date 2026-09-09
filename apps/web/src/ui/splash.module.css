@@ -10,12 +10,10 @@
 }
 
 .splash__title {
-  margin: 0;
-  font-size: 20px;
+  font-size: var(--font-xl);
 }
 
 .splash__message {
-  margin: 0;
   color: var(--text-muted);
 }
 
