@@ -20,10 +20,11 @@ Dev-сервер проксирует `/api`, `/assets` и `/openapi.json` на 
 (она же используется как база запросов в собранной сборке).
 
 ```sh
-npm run build:web  # сборка в apps/web/dist
-npm run lint:web   # ESLint (typescript-eslint strictTypeChecked)
-npm run test:web   # Vitest
-npm run check:web  # линтер + тесты + сборка
+npm run build:web    # сборка в apps/web/dist
+npm run lint:web     # ESLint: type-checked, import/order, jsx-a11y, react
+npm run lint:css:web # Stylelint: standard + recess order + БЭМ-имена
+npm run test:web     # Vitest
+npm run check:web    # линтеры + тесты + сборка
 ```
 
 Пространство создаётся автоматически при первом открытии, его идентификатор хранится в

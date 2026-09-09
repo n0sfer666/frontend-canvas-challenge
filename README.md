@@ -29,7 +29,7 @@ npm ci
 npm run dev       # API на http://127.0.0.1:4001
 npm run dev:web   # фронтенд на http://localhost:5173
 npm run build:web # сборка фронтенда
-npm run check:web # линтер, тесты, сборка
+npm run check:web # линтеры, тесты, сборка
 ```
 
 ## Структура и команды
